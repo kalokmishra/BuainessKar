@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "meta": {
+    "financialYear": "2026-27",
+    "assessmentYear": "2027-28",
+    "version": "1.0.0",
+    "lastUpdated": "2026-04-01",
+    "jurisdiction": "IN",
+    "disclaimer": "Automated estimation based on Section 44AD/44ADA rules under the Indian Income Tax Act, 1961 for FY 2026-27. Not formal legal or tax advice."
+  },
+  "section44ADA": {
+    "standardLimit": 5000000,
+    "extendedDigitalLimit": 7500000,
+    "maxCashReceiptsPercentage": 5.0,
+    "presumptiveProfitRate": 0.50,
+    "eligibleProfessions": [
+      "LEGAL",
+      "MEDICAL",
+      "ENGINEERING",
+      "ARCHITECTURE",
+      "ACCOUNTANCY",
+      "TECHNICAL_CONSULTANCY",
+      "INTERIOR_DECORATION",
+      "IT_SOFTWARE",
+      "AUTHORIZED_REPRESENTATIVE",
+      "FILM_ARTIST",
+      "COMPANY_SECRETARY"
+    ]
+  },
+  "section44AD": {
+    "standardLimit": 20000000,
+    "extendedDigitalLimit": 30000000,
+    "maxCashReceiptsPercentage": 5.0,
+    "digitalProfitRate": 0.06,
+    "cashProfitRate": 0.08,
+    "ineligibleBusinesses": [
+      "COMMISSION_OR_BROKERAGE",
+      "AGENCY_BUSINESS",
+      "PLYING_HIRING_GOODS_CARRIAGES_44AE"
+    ]
+  },
+  "cashSurveillance": {
+    "normalUpperThreshold": 4.5,
+    "warningUpperThreshold": 5.0,
+    "tier1WarningMessage": "Cash receipts are approaching the statutory 5.0% threshold (Current range: 4.5% - 5.0%). Maintain digital collection discipline to protect extended turnover limits (₹75L / ₹3Cr).",
+    "tier2ViolationMessage": "Cash receipts exceed the 5.0% threshold. Extended turnover limit forfeited. Standard limit applies (₹50L under 44ADA / ₹2Cr under 44AD). Tax audit under Section 44AB required if gross receipts exceed standard limits."
+  },
+  "advanceTaxSchedule": {
+    "quarters": [
+      {
+        "quarter": "Q1",
+        "dueDate": "06-15",
+        "minCumulativePercent": 15,
+        "description": "15% on or before 15th June"
+      },
+      {
+        "quarter": "Q2",
+        "dueDate": "09-15",
+        "minCumulativePercent": 45,
+        "description": "45% on or before 15th September"
+      },
+      {
+        "quarter": "Q3",
+        "dueDate": "12-15",
+        "minCumulativePercent": 75,
+        "description": "75% on or before 15th December"
+      },
+      {
+        "quarter": "Q4",
+        "dueDate": "03-15",
+        "minCumulativePercent": 100,
+        "description": "100% on or before 15th March"
+      }
+    ],
+    "interestRatePerMonth234C": 1.0,
+    "interestRatePerMonth234B": 1.0,
+    "presumptiveSpecialNote": "Presumptive taxpayers under Section 44AD / 44ADA are permitted under Section 211(1)(b) to pay 100% of their advance tax in a single installment on or before 15th March."
+  },
+  "taxRegimes": {
+    "newRegime": {
+      "standardDeductionSalaried": 75000,
+      "standardDeductionPresumptive": 0,
+      "slabs": [
+        { "min": 0, "max": 400000, "rate": 0.0 },
+        { "min": 400000, "max": 800000, "rate": 0.05 },
+        { "min": 800000, "max": 1200000, "rate": 0.10 },
+        { "min": 1200000, "max": 1600000, "rate": 0.15 },
+        { "min": 1600000, "max": 2000000, "rate": 0.20 },
+        { "min": 2000000, "max": 2400000, "rate": 0.25 },
+        { "min": 2400000, "max": null, "rate": 0.30 }
+      ],
+      "rebate87A": {
+        "taxableIncomeThreshold": 700000,
+        "maxRebateAmount": 25000,
+        "hasMarginalRelief": true
+      },
+      "healthAndEducationCessRate": 0.04
+    },
+    "oldRegime": {
+      "standardDeductionSalaried": 50000,
+      "standardDeductionPresumptive": 0,
+      "slabs": [
+        { "min": 0, "max": 250000, "rate": 0.0 },
+        { "min": 250000, "max": 500000, "rate": 0.05 },
+        { "min": 500000, "max": 1000000, "rate": 0.20 },
+        { "min": 1000000, "max": null, "rate": 0.30 }
+      ],
+      "rebate87A": {
+        "taxableIncomeThreshold": 500000,
+        "maxRebateAmount": 12500,
+        "hasMarginalRelief": false
+      },
+      "healthAndEducationCessRate": 0.04
+    }
+  },
+  "gst": {
+    "sacCodes": [
+      {
+        "code": "998314",
+        "description": "Information technology consultancy and supply services"
+      },
+      {
+        "code": "998311",
+        "description": "Management consulting and management services"
+      },
+      {
+        "code": "998312",
+        "description": "Business consulting services"
+      },
+      {
+        "code": "998313",
+        "description": "IT infrastructure and network management services"
+      },
+      {
+        "code": "998319",
+        "description": "Other professional, technical and business services"
+      }
+    ],
+    "standardRates": [0, 5, 12, 18, 28],
+    "defaultServiceRate": 18,
+    "zeroRatedDisclaimer": "SUPPLY MEANT FOR EXPORT UNDER BOND OR LETTER OF UNDERTAKING (LUT) WITHOUT PAYMENT OF INTEGRATED TAX (IGST)"
+  }
+}
