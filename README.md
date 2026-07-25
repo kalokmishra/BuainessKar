@@ -1,11 +1,107 @@
-<div align="center">
+# Indian Tax Utility MVP - Core Engine & Mobile-First App (Section 44AD & Section 44ADA)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+> **Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🌟 Key Features
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+1. **Rules-as-Code (RaC) Architecture:**
+   - All tax rules, turnover limits (₹50L / ₹75L / ₹2Cr / ₹3Cr), cash threshold percentages (5.0%), slab brackets, Section 87A rebates, SAC codes, and advance tax interest rates are dynamically loaded from version-controlled `taxSchema.json`.
 
-</div>
+2. **Eligibility & Workflow Routing (`/src/engine/eligibility.ts`):**
+   - Automatically routes taxpayers to **Section 44ADA** (Professional 50% deemed profit), **Section 44AD** (Business 6% digital / 8% cash), or **Section 44AB Tax Audit** (for ineligible entities like LLPs/Companies, turnover limit breaches, or lower profit declarations).
+
+3. **Cash Surveillance Engine (`/src/engine/cashSurveillance.ts`):**
+   - Real-time monitoring of cash-to-gross receipts percentage.
+   - Categorizes status into `NORMAL` (<4.5%), `TIER_1_WARNING` (4.5% - 5.0%), and `TIER_2_VIOLATION` (>5.0%) with localized bilingual alerts (English & Hindi/Hinglish).
+
+4. **Old vs New Tax Regime Comparator (`/src/engine/presumptiveTax.ts`):**
+   - Calculates deemed income and compares New Tax Regime vs Old Tax Regime tax liabilities.
+   - Applies Section 87A rebate (up to ₹7,00,000 income under New Regime) and marginal relief, highlighting net tax savings.
+
+5. **Advance Tax & Section 234C Penalty Planner (`/src/engine/advanceTax.ts`):**
+   - Calculates quarterly installment targets (June 15, Sept 15, Dec 15, March 15).
+   - Highlights **Section 211(1)(b) Statutory Privilege** for presumptive taxpayers (single March 15 payment deadline with exemption from Q1-Q3 Section 234C interest penalties).
+
+6. **Cross-Border Export & GST Invoice Engine (`/src/engine/invoiceExporter.ts`):**
+   - Auto-maps Service Accounting Codes (e.g., `998314` for IT Consultancy).
+   - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports:
+     `"SUPPLY MEANT FOR EXPORT UNDER BOND OR LETTER OF UNDERTAKING (LUT) WITHOUT PAYMENT OF INTEGRATED TAX (IGST)"`.
+
+7. **Government ITR-4 (Sugam) JSON Mapper (`/src/engine/itr4Schema.ts`):**
+   - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
+
+---
+
+## 🚀 Quick Start & Running
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Run Development Application (Express API + Vite React UI)
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 3. Run Automated Unit Test Suites
+```bash
+npm test
+```
+Runs 20 automated unit tests using Vitest covering all core engine edge cases.
+
+### 4. Build & Run Production Server
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 📁 Repository Directory Structure
+
+```
+├── taxSchema.json                 # Core Rules-as-Code tax schema payload
+├── server.ts                      # Express server exposing REST APIs and Vite middleware
+├── src/
+│   ├── config/
+│   │   └── taxSchema.json         # Module schema source
+│   ├── engine/
+│   │   ├── types.ts               # Core TypeScript interfaces & types
+│   │   ├── schemaLoader.ts        # RaC schema parser and dynamic setter
+│   │   ├── eligibility.ts         # Module 1: Entity eligibility & routing
+│   │   ├── cashSurveillance.ts    # Module 2: Cash % monitor & alert levels
+│   │   ├── presumptiveTax.ts      # Module 3: Deemed profit & regime tax calculator
+│   │   ├── advanceTax.ts          # Module 4: Advance tax schedule & 234C penalties
+│   │   ├── invoiceExporter.ts     # Module 5: GST & LUT Zero-Rated Export invoice metadata
+│   │   └── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter
+│   ├── components/
+│   │   ├── Header.tsx             # Navigation header
+│   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator
+│   │   ├── CashSurveillanceTab.tsx# Cash threshold surveillance dashboard
+│   │   ├── AdvanceTaxTab.tsx      # Quarterly advance tax planner
+│   │   ├── ExportInvoiceTab.tsx   # Cross-border export invoice generator
+│   │   ├── ITR4MapperTab.tsx      # Official ITR-4 Sugam JSON mapper
+│   │   └── SchemaInspectorTab.tsx # RaC JSON Schema Inspector & live updater
+│   ├── App.tsx                    # Main React application
+│   ├── main.tsx                   # React DOM entrypoint
+│   └── index.css                  # Tailwind CSS styling
+├── tests/                         # Automated Vitest test suites
+│   ├── eligibility.test.ts
+│   ├── cashSurveillance.test.ts
+│   ├── presumptiveTax.test.ts
+│   ├── advanceTax.test.ts
+│   ├── invoiceExporter.test.ts
+│   └── itr4Schema.test.ts
+├── ARCHITECTURE.md                # System architecture documentation
+├── README.md                      # Application documentation
+└── package.json                   # Dependencies & build scripts
+```
+
+---
+
+## ⚖️ Legal & Compliance Disclaimer
+Outputs produced by this software are automated estimations based on user inputs and statutory rules specified in `taxSchema.json` for FY 2026-27. This application does not constitute formal legal or Chartered Accountancy advice.
