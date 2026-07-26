@@ -314,6 +314,61 @@ export interface ITR4SchemaOutput {
   };
 }
 
+export interface CapitalGainsInput {
+  stcgEquity: number; // Section 111A (Equity shares / Equity MFs) - 20%
+  stcgOther: number; // Other STCG (Slab rates)
+  ltcgEquity: number; // Section 112A (Listed Equity / MFs) - 12.5% above ₹1.25L
+  ltcgOther: number; // Section 112 (Real estate, unlisted shares, gold) - 12.5%
+}
+
+export interface ComprehensiveTaxInput {
+  grossSalary: number;
+  workflowRoute: WorkflowRoute;
+  freelanceGrossReceipts: number;
+  freelanceCashReceipts: number;
+  freelanceDeclaredProfit?: number;
+  capitalGains: CapitalGainsInput;
+  otherIncome: number;
+  chapterVIADeductions: number;
+}
+
+export interface ComprehensiveRegimeResult {
+  grossSalary: number;
+  salariedStandardDeduction: number;
+  netSalariedIncome: number;
+  freelanceGrossReceipts: number;
+  freelanceDeemedProfit: number;
+  stcgEquity: number;
+  stcgOther: number;
+  ltcgEquity: number;
+  ltcgEquityExempted: number;
+  ltcgEquityTaxable: number;
+  ltcgOther: number;
+  otherIncome: number;
+  grossTotalIncome: number;
+  chapterVIADeductionsApplied: number;
+  normalSlabTaxableIncome: number;
+  normalSlabBaseTax: number;
+  stcgEquityTax: number;
+  ltcgEquityTax: number;
+  ltcgOtherTax: number;
+  unexhaustedExemptionOffset: number;
+  totalTaxBeforeRebate: number;
+  rebate87A: number;
+  netTaxAfterRebate: number;
+  cess: number;
+  totalTaxLiability: number;
+  effectiveTaxRateOnTotalIncome: number;
+}
+
+export interface ComprehensiveTaxResult {
+  newRegime: ComprehensiveRegimeResult;
+  oldRegime: ComprehensiveRegimeResult;
+  recommendedRegime: 'NEW' | 'OLD';
+  taxSavings: number;
+  complianceNotes: string[];
+}
+
 export interface AITaxTip {
   title: string;
   category: 'REGIME_OPTIMIZATION' | 'CASH_SURVEILLANCE' | 'ADVANCE_TAX' | 'DEDUCTIONS' | 'GST_LUT' | 'BUSINESS_EXPENSE';

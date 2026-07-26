@@ -1,5 +1,20 @@
 import React from 'react';
-import { ShieldCheck, FileText, Calculator, AlertTriangle, Calendar, FileSpreadsheet, Code2, Sparkles } from 'lucide-react';
+import {
+  ShieldCheck,
+  FileText,
+  Calculator,
+  AlertTriangle,
+  Calendar,
+  FileSpreadsheet,
+  Code2,
+  Sparkles,
+  Briefcase,
+  User as UserIcon,
+  LogOut,
+  Mail,
+  Phone,
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   activeTab: string;
@@ -14,8 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
   financialYear,
   assessmentYear,
 }) => {
+  const { currentUser, logout } = useAuth();
+
   const tabs = [
     { id: 'calculator', label: 'Engine Calculator', icon: Calculator },
+    { id: 'comprehensive', label: 'Multi-Head & Salary Tax', icon: Briefcase },
     { id: 'ai-advisor', label: 'Tax Advisor', icon: Sparkles },
     { id: 'surveillance', label: 'Cash Surveillance', icon: AlertTriangle },
     { id: 'advancetax', label: 'Advance Tax & 234C', icon: Calendar },
@@ -47,9 +65,38 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs bg-slate-800/80 p-1.5 rounded-lg border border-slate-700/60 self-start md:self-auto">
-            <span className="text-slate-400 font-medium px-2">Jurisdiction: IN (Section 44AD / 44ADA)</span>
-          </div>
+          {/* User Profile Badge & Logout Bar */}
+          {currentUser && (
+            <div className="flex items-center gap-3 self-start md:self-auto bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-2 px-2 border-r border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-100 block leading-tight">
+                    {currentUser.name}
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                    {currentUser.type === 'email' ? (
+                      <Mail className="w-3 h-3 text-slate-400" />
+                    ) : (
+                      <Phone className="w-3 h-3 text-slate-400" />
+                    )}
+                    {currentUser.identifier}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={logout}
+                title="Sign Out"
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 transition-all font-medium"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -77,3 +124,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

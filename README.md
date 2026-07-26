@@ -42,6 +42,16 @@
 
 10. **Government ITR-4 (Sugam) JSON Mapper (`/src/engine/itr4Schema.ts`):**
     - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
+    - Features an interactive section explorer, search and filter bar for finding specific form sections, statutory guidelines, and instructions.
+
+11. **Multi-Head & Salary Tax Calculator Engine (`/src/engine/comprehensiveTax.ts`):**
+    - Aggregates multi-head income across Salary (net of Salaried Standard Deduction ₹75,000 New / ₹50,000 Old), Freelance Presumptive Business/Profession (Sec 44AD/44ADA), Capital Gains (STCG Sec 111A at 20%, LTCG Sec 112A at 12.5% above ₹1.25L exemption, LTCG Sec 112), and Other Income.
+    - Provides a comprehensive side-by-side tax liability overview comparing New vs Old Tax Regimes with basic exemption set-off and Section 87A rebate rules for FY 2026-27 (AY 2027-28).
+
+12. **User Authentication & Session Management (`/src/context/AuthContext.tsx` & `/src/components/LoginModal.tsx`):**
+    - Gatekeeps app access so only authenticated users can access tax calculation features.
+    - Supports user signup and login via Email ID or 10-digit Indian Mobile Number with static password verification and localStorage persistence.
+    - Features pre-populated demo accounts for instant testing, along with a top header user profile badge and logout option.
 
 ---
 
@@ -93,7 +103,8 @@ npm start
 │   │   ├── advanceTax.ts          # Module 4: Advance tax schedule & 234C penalties
 │   │   ├── invoiceExporter.ts     # Module 5: GST & LUT Zero-Rated Export invoice metadata
 │   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter
-│   │   └── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
+│   │   ├── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
+│   │   └── comprehensiveTax.ts    # Module 8: Multi-Head Salary & Capital Gains Tax Calculator engine
 │   ├── utils/
 │   │   └── pdfExporter.ts        # PDF Report Exporter (jsPDF engine)
 │   ├── components/
