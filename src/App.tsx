@@ -54,11 +54,16 @@ function MainAppContent() {
     setSchemaMeta(getTaxSchema().meta);
   }, [activeTab]);
 
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 font-sans text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+        <LoginModal />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
-      {/* Show Login Screen if user is not authenticated */}
-      {!currentUser && <LoginModal />}
-
       {/* Header with Navigation & User Profile Badge */}
       <Header
         activeTab={activeTab}

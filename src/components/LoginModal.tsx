@@ -187,12 +187,41 @@ export const LoginModal: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
           >
-            <span>{mode === 'LOGIN' ? 'Sign In to App' : 'Create & Sign In'}</span>
+            <span>{mode === 'LOGIN' ? 'Sign In to App' : 'Create Account & Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
+
+        {/* Explicit Mode Toggle Footer Link */}
+        <div className="text-center pt-2">
+          {mode === 'SIGNUP' ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMode('LOGIN');
+                setErrorMessage('');
+                setSuccessMessage('');
+              }}
+              className="text-xs text-slate-400 hover:text-emerald-400 transition-all cursor-pointer inline-flex items-center gap-1 font-medium"
+            >
+              Already have an account? <span className="text-emerald-400 font-bold underline">Sign In</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMode('SIGNUP');
+                setErrorMessage('');
+                setSuccessMessage('');
+              }}
+              className="text-xs text-slate-400 hover:text-emerald-400 transition-all cursor-pointer inline-flex items-center gap-1 font-medium"
+            >
+              Don't have an account? <span className="text-emerald-400 font-bold underline">Create New Sign Up</span>
+            </button>
+          )}
+        </div>
 
         {/* Quick Demo Credentials */}
         <div className="pt-3 border-t border-slate-800 space-y-2">
