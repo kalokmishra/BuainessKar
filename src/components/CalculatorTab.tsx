@@ -7,6 +7,18 @@ import {
   ArrowRight,
   Sparkles,
   Info,
+  Bookmark,
+  History,
+  Save,
+  Trash2,
+  Clock,
+  RotateCcw,
+  Check,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FileText,
 } from 'lucide-react';
 import {
   EligibilityResult,
@@ -16,6 +28,33 @@ import {
   ProfessionCategory,
   BusinessCategory,
 } from '../engine/types';
+import { generateTaxCalculationPdf } from '../utils/pdfExporter';
+
+interface SavedCalculation {
+  id: string;
+  timestamp: string;
+  title: string;
+  inputs: {
+    entityType: EntityType;
+    activityType: 'PROFESSION' | 'BUSINESS';
+    professionCategory: ProfessionCategory;
+    businessCategory: BusinessCategory;
+    grossReceipts: number;
+    cashReceipts: number;
+    declaredProfit?: string;
+    otherIncome: number;
+    chapterVIADeductions: number;
+  };
+  summary: {
+    isEligible: boolean;
+    workflowRoute: string;
+    deemedProfit: number;
+    recommendedRegime: 'NEW' | 'OLD';
+    newRegimeTax: number;
+    oldRegimeTax: number;
+    taxSavings: number;
+  };
+}
 
 interface CalculatorTabProps {
   onEvaluate: (data: any) => void;
@@ -26,6 +65,8 @@ interface CalculatorTabProps {
   } | null;
   onNavigateToAI?: () => void;
 }
+
+const LOCAL_STORAGE_KEY = 'tax_engine_saved_calculations';
 
 export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   onEvaluate,
@@ -41,6 +82,31 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   const [declaredProfit, setDeclaredProfit] = useState<string>('');
   const [otherIncome, setOtherIncome] = useState<number>(0);
   const [chapterVIADeductions, setChapterVIADeductions] = useState<number>(150000);
+
+  // Local storage state
+  const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>(() => {
+    try {
+      const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (err) {
+      console.error('Error reading saved calculations from localStorage:', err);
+      return [];
+    }
+  });
+
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
+  const [scenarioTitle, setScenarioTitle] = useState<string>('');
+  const [notificationMsg, setNotificationMsg] = useState<string>('');
+
+  // Persist to localStorage whenever savedCalculations changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedCalculations));
+    } catch (err) {
+      console.error('Error persisting calculations to localStorage:', err);
+    }
+  }, [savedCalculations]);
 
   const handleRunEvaluation = () => {
     onEvaluate({
@@ -76,24 +142,310 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
   const formatINR = (val: number) => `₹${(val || 0).toLocaleString('en-IN')}`;
 
+  const triggerNotification = (msg: string) => {
+    setNotificationMsg(msg);
+    setTimeout(() => {
+      setNotificationMsg('');
+    }, 3500);
+  };
+
+  const handleSaveCurrentResult = () => {
+    if (!evaluationData) return;
+
+    const categoryText = activityType === 'PROFESSION' ? professionCategory : businessCategory;
+    const defaultTitle = `${entityType} • ${categoryText.replace(/_/g, ' ')} • ${formatINR(grossReceipts)}`;
+
+    const newRecord: SavedCalculation = {
+      id: `calc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+      title: (scenarioTitle || defaultTitle).trim(),
+      inputs: {
+        entityType,
+        activityType,
+        professionCategory,
+        businessCategory,
+        grossReceipts,
+        cashReceipts,
+        declaredProfit,
+        otherIncome,
+        chapterVIADeductions,
+      },
+      summary: {
+        isEligible: eligibility?.isEligible ?? false,
+        workflowRoute: eligibility?.workflowRoute || 'N/A',
+        deemedProfit: presumptive?.deemedProfit || 0,
+        recommendedRegime: presumptive?.recommendedRegime || 'NEW',
+        newRegimeTax: presumptive?.newRegime?.totalTaxLiability || 0,
+        oldRegimeTax: presumptive?.oldRegime?.totalTaxLiability || 0,
+        taxSavings: presumptive?.taxSavings || 0,
+      },
+    };
+
+    setSavedCalculations((prev) => [newRecord, ...prev]);
+    setScenarioTitle('');
+    setShowSaveModal(false);
+    triggerNotification(`Calculation "${newRecord.title}" saved to local storage!`);
+  };
+
+  const handleLoadSavedResult = (item: SavedCalculation) => {
+    setEntityType(item.inputs.entityType);
+    setActivityType(item.inputs.activityType);
+    if (item.inputs.professionCategory) setProfessionCategory(item.inputs.professionCategory);
+    if (item.inputs.businessCategory) setBusinessCategory(item.inputs.businessCategory);
+    setGrossReceipts(item.inputs.grossReceipts);
+    setCashReceipts(item.inputs.cashReceipts);
+    setDeclaredProfit(item.inputs.declaredProfit || '');
+    setOtherIncome(item.inputs.otherIncome || 0);
+    setChapterVIADeductions(item.inputs.chapterVIADeductions || 0);
+
+    triggerNotification(`Loaded scenario: "${item.title}"`);
+  };
+
+  const handleDeleteSavedResult = (id: string, title: string) => {
+    setSavedCalculations((prev) => prev.filter((calc) => calc.id !== id));
+    triggerNotification(`Deleted calculation: "${title}"`);
+  };
+
+  const handleClearAllHistory = () => {
+    if (window.confirm('Are you sure you want to clear all saved calculation results?')) {
+      setSavedCalculations([]);
+      triggerNotification('All saved calculations cleared.');
+    }
+  };
+
+  const handleExportPdf = () => {
+    const categoryLabel = activityType === 'PROFESSION' 
+      ? professionCategory.replace(/_/g, ' ') 
+      : businessCategory.replace(/_/g, ' ');
+
+    generateTaxCalculationPdf({
+      entityType,
+      activityType,
+      categoryLabel,
+      grossReceipts,
+      cashReceipts,
+      chapterVIADeductions,
+      eligibility: eligibility || null,
+      presumptive: presumptive || null,
+    });
+
+    triggerNotification('PDF Tax Report exported successfully!');
+  };
+
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {notificationMsg && (
+        <div className="bg-emerald-900/60 border border-emerald-500/50 text-emerald-200 px-4 py-2.5 rounded-xl text-xs flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-medium">{notificationMsg}</span>
+          </div>
+          <button
+            onClick={() => setNotificationMsg('')}
+            className="text-emerald-300 hover:text-white p-0.5 rounded"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Intro banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-white shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-400 mt-0.5">
-            <Calculator className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-400 mt-0.5">
+              <Calculator className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                Presumptive Tax Eligibility & Regime Selector
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Evaluates Section 44ADA (Professional 50%) and Section 44AD (Business 6%/8%) rules, cash turnover limits (₹50L / ₹75L / ₹2Cr / ₹3Cr), and compares Old vs New Tax Regime.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-100">
-              Presumptive Tax Eligibility & Regime Selector
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Evaluates Section 44ADA (Professional 50%) and Section 44AD (Business 6%/8%) rules, cash turnover limits (₹50L / ₹75L / ₹2Cr / ₹3Cr), and compares Old vs New Tax Regime.
-            </p>
+
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto flex-wrap">
+            <button
+              onClick={handleExportPdf}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 font-semibold px-3 py-2 rounded-xl text-xs transition-all shadow-sm"
+              title="Export current calculation result to a formatted PDF document"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export PDF</span>
+            </button>
+
+            <button
+              onClick={() => setShowSaveModal(true)}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-2 rounded-xl text-xs transition-all shadow-sm"
+              title="Save current calculation to browser local storage"
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              <span>Save Result</span>
+            </button>
+            <button
+              onClick={() => setShowHistoryPanel((prev) => !prev)}
+              className={`flex items-center gap-1.5 border px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                showHistoryPanel
+                  ? 'bg-slate-800 border-emerald-500 text-emerald-300'
+                  : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <History className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Saved History ({savedCalculations.length})</span>
+              {showHistoryPanel ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Save Scenario Modal / Form */}
+      {showSaveModal && (
+        <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 text-white space-y-3">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+            <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+              <Bookmark className="w-4 h-4" />
+              Save Current Calculation Result
+            </h3>
+            <button
+              onClick={() => setShowSaveModal(false)}
+              className="text-slate-400 hover:text-white p-1 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs text-slate-400">
+            Save these calculation parameters and tax regime evaluation to your browser's local storage so you can retrieve or compare them later.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={scenarioTitle}
+              onChange={(e) => setScenarioTitle(e.target.value)}
+              placeholder={`Scenario title (e.g. ${entityType} - ${activityType === 'PROFESSION' ? professionCategory : businessCategory} - ${formatINR(grossReceipts)})`}
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+            />
+            <button
+              onClick={handleSaveCurrentResult}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0"
+            >
+              <Save className="w-3.5 h-3.5" />
+              Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Saved History Panel */}
+      {showHistoryPanel && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 text-white">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-bold text-slate-100">
+                Saved Calculations History ({savedCalculations.length})
+              </h3>
+            </div>
+            {savedCalculations.length > 0 && (
+              <button
+                onClick={handleClearAllHistory}
+                className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-medium transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear All
+              </button>
+            )}
+          </div>
+
+          {savedCalculations.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 text-xs">
+              <Bookmark className="w-8 h-8 mx-auto mb-2 opacity-30 text-slate-400" />
+              <p>No saved calculation results in local storage yet.</p>
+              <p className="mt-1 text-slate-600">
+                Click "Save Result" above to save your calculation scenarios.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {savedCalculations.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 space-y-3 text-xs flex flex-col justify-between transition-all"
+                >
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-bold text-slate-100 truncate block text-xs" title={item.title}>
+                        {item.title}
+                      </span>
+                      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded shrink-0 font-medium">
+                        {item.summary.recommendedRegime} Regime
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-500" />
+                      <span>{item.timestamp}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-900 text-[11px]">
+                      <div>
+                        <span className="text-slate-500 block">Gross Turnover</span>
+                        <span className="font-semibold text-slate-200">
+                          {formatINR(item.inputs.grossReceipts)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Deemed Profit</span>
+                        <span className="font-semibold text-emerald-400">
+                          {formatINR(item.summary.deemedProfit)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Recommended Tax</span>
+                        <span className="font-semibold text-slate-200">
+                          {formatINR(
+                            item.summary.recommendedRegime === 'NEW'
+                              ? item.summary.newRegimeTax
+                              : item.summary.oldRegimeTax
+                          )}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Net Savings</span>
+                        <span className="font-semibold text-emerald-400">
+                          {formatINR(item.summary.taxSavings)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-slate-900">
+                    <button
+                      onClick={() => handleLoadSavedResult(item)}
+                      className="flex-1 bg-slate-900 hover:bg-emerald-950/50 hover:text-emerald-300 text-slate-200 border border-slate-800 hover:border-emerald-500/40 py-1.5 px-2 rounded-lg font-medium flex items-center justify-center gap-1.5 transition-all text-[11px]"
+                    >
+                      <RotateCcw className="w-3 h-3 text-emerald-400" />
+                      <span>Load into Calculator</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSavedResult(item.id, item.title)}
+                      className="text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 p-1.5 rounded-lg transition-colors border border-transparent hover:border-rose-900/50"
+                      title="Delete from local storage"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Inputs Column */}
@@ -336,10 +688,20 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           {/* Deemed Profit Summary */}
           {presumptive && (
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Presumptive Deemed Income</span>
-                <span className="text-emerald-400 lowercase">{presumptive.presumptiveRateAppliedText}</span>
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <span>Presumptive Deemed Income</span>
+                  <span className="text-emerald-400 lowercase font-normal">({presumptive.presumptiveRateAppliedText})</span>
+                </h4>
+                <button
+                  onClick={handleExportPdf}
+                  className="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all"
+                  title="Download PDF report for current computation"
+                >
+                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Download PDF Report</span>
+                </button>
+              </div>
 
               <div className="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <div>
