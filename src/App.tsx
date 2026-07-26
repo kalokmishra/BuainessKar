@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginModal } from './components/LoginModal';
 import { Header } from './components/Header';
 import { CalculatorTab } from './components/CalculatorTab';
 import { CashSurveillanceTab } from './components/CashSurveillanceTab';
 import { AdvanceTaxTab } from './components/AdvanceTaxTab';
 import { ExportInvoiceTab } from './components/ExportInvoiceTab';
 import { ITR4MapperTab } from './components/ITR4MapperTab';
+import { ComprehensiveTaxTab } from './components/ComprehensiveTaxTab';
 import { SchemaInspectorTab } from './components/SchemaInspectorTab';
 import { AITaxAdvisorTab } from './components/AITaxAdvisorTab';
 
@@ -15,7 +18,8 @@ import {
   CashSurveillanceResult,
 } from './engine/types';
 
-export default function App() {
+function MainAppContent() {
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('calculator');
   const [schemaMeta, setSchemaMeta] = useState(getTaxSchema().meta);
 
@@ -52,7 +56,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
-      {/* Header with Navigation */}
+      {/* Show Login Screen if user is not authenticated */}
+      {!currentUser && <LoginModal />}
+
+      {/* Header with Navigation & User Profile Badge */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -69,6 +76,8 @@ export default function App() {
             onNavigateToAI={() => setActiveTab('ai-advisor')}
           />
         )}
+
+        {activeTab === 'comprehensive' && <ComprehensiveTaxTab />}
 
         {activeTab === 'ai-advisor' && (
           <AITaxAdvisorTab calculatorInput={lastCalculatorInput} />
@@ -106,3 +115,12 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainAppContent />
+    </AuthProvider>
+  );
+}
+

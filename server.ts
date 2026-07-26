@@ -14,6 +14,7 @@ import { evaluateEligibility } from './src/engine/eligibility.js';
 import { generateInvoiceExportMetadata } from './src/engine/invoiceExporter.js';
 import { generateITR4Json } from './src/engine/itr4Schema.js';
 import { calculatePresumptiveTax } from './src/engine/presumptiveTax.js';
+import { calculateComprehensiveTax } from './src/engine/comprehensiveTax.js';
 import { getTaxSchema, setTaxSchema } from './src/engine/schemaLoader.js';
 import { generateAITaxTips } from './src/engine/aiAdvisor.js';
 
@@ -114,6 +115,30 @@ async function startServer() {
           advanceTax,
         },
       });
+    } catch (err: any) {
+      res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
+  // 3.5. Multi-Head Comprehensive Tax Evaluation API (Salary, Presumptive, Capital Gains, Other)
+  app.post('/api/tax/comprehensive', (req, res) => {
+    try {
+      const result = calculateComprehensiveTax({
+        grossSalary: req.body.grossSalary || 0,
+        workflowRoute: req.body.workflowRoute || 'SECTION_44ADA',
+        freelanceGrossReceipts: req.body.freelanceGrossReceipts || 0,
+        freelanceCashReceipts: req.body.freelanceCashReceipts || 0,
+        freelanceDeclaredProfit: req.body.freelanceDeclaredProfit,
+        capitalGains: req.body.capitalGains || {
+          stcgEquity: 0,
+          stcgOther: 0,
+          ltcgEquity: 0,
+          ltcgOther: 0,
+        },
+        otherIncome: req.body.otherIncome || 0,
+        chapterVIADeductions: req.body.chapterVIADeductions || 0,
+      });
+      res.json({ status: 'success', data: result });
     } catch (err: any) {
       res.status(500).json({ status: 'error', message: err.message });
     }

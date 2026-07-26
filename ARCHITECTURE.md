@@ -97,6 +97,22 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Integrates with Gemini 3.6 Flash for intelligent Section 44AD/44ADA tax planning and statutory advice.
   - Implements offline rule-based fallback responses (`getOfflineFallbackAdvice`) if API keys are missing or network requests fail.
 
+### Module 8: `comprehensiveTax.ts`
+- **Function:** `calculateComprehensiveTax(input: ComprehensiveTaxInput): ComprehensiveTaxResult`
+- **Responsibilities:**
+  - Evaluates multi-head aggregate taxable income across Salary, Presumptive Business/Profession (Section 44AD/44ADA), Capital Gains, and Other Income.
+  - Applies Salaried Standard Deduction (₹75,000 under New Regime / ₹50,000 under Old Regime).
+  - Computes special rate capital gains tax: STCG Equity Section 111A at 20%, LTCG Equity Section 112A at 12.5% on gains exceeding ₹1,25,000 exemption limit, and LTCG Other Section 112 at 12.5%.
+  - Handles basic exemption set-off for resident individuals if normal slab income is below the basic exemption threshold.
+  - Compares New vs Old Tax Regime total tax liabilities and generates regime recommendation with net tax savings.
+
+### Module 9: `AuthContext.tsx` & `LoginModal.tsx`
+- **Responsibilities:**
+  - Manages client-side user authentication, session state, and localStorage user records.
+  - Gatekeeps application access via the `LoginModal` overlay when no active user session exists.
+  - Validates Email ID and Indian 10-digit mobile phone numbers with static password checks on login and signup.
+  - Displays user profile badge in the global Header with user name, email/phone indicator, and logout action.
+
 ### Utility 1: `pdfExporter.ts`
 - **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
 - **Responsibilities:**
