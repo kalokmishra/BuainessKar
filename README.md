@@ -2,6 +2,8 @@
 
 > **Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
 
+📖 **[Read the End-User & Prospective User Feature Guide (USER_GUIDE.md)](./USER_GUIDE.md)** for a complete overview of features, value drivers, and compliance benefits.
+
 ---
 
 ## 🌟 Key Features
