@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "lastUpdated": "2026-04-01",
     "jurisdiction": "IN",
-    "disclaimer": "Automated estimation based on Section 44AD/44ADA rules under the Indian Income Tax Act, 1961 for FY 2026-27. Not formal legal or tax advice."
+    "disclaimer": "Automated estimation based on Section 44AD/44ADA rules under the Indian Income Tax Act (as amended and applicable for FY 2026-27 / AY 2027-28). Not formal legal or tax advice."
   },
   "section44ADA": {
     "standardLimit": 5000000,

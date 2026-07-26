@@ -313,7 +313,7 @@ export const generateTaxCalculationPdf = (data: TaxPdfExportData) => {
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    'Disclaimer: This evaluation report is generated automatically based on the Income Tax Act, 1961 (FY 2026-27). Please consult a qualified Chartered Accountant for final filing.',
+    'Disclaimer: This evaluation report is generated automatically based on Section 44AD/44ADA rules under the Indian Income Tax Act (as amended for FY 2026-27). Please consult a qualified Chartered Accountant for final filing.',
     14,
     285
   );

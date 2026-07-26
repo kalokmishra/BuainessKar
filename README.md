@@ -20,17 +20,28 @@
    - Calculates deemed income and compares New Tax Regime vs Old Tax Regime tax liabilities.
    - Applies Section 87A rebate (up to ₹7,00,000 income under New Regime) and marginal relief, highlighting net tax savings.
 
-5. **Advance Tax & Section 234C Penalty Planner (`/src/engine/advanceTax.ts`):**
+5. **Scenario History & Local Storage Persistence:**
+   - Allows users to save calculation scenarios locally in their browser.
+   - Browse saved calculations history, review key metrics (Turnover, Deemed Profit, Recommended Tax, Net Savings), load previous scenarios into the calculator with one click, or clear history.
+
+6. **Formatted PDF Tax Report Export (`/src/utils/pdfExporter.ts`):**
+   - Export calculation results into a formatted, high-resolution PDF report.
+   - Contains Assessee Profile, Section 44AD/44ADA Eligibility Evaluation, Old vs New Regime Tax Line-Item Breakdown, Net Tax Savings Banner, and Section 211 Advance Tax Payment Schedule.
+
+7. **AI Tax Advisor (`/src/engine/aiAdvisor.ts`):**
+   - Integrated with Gemini 3.6 Flash for intelligent tax query advisory and statutory planning.
+   - Equipped with rule-based offline fallbacks for seamless availability even without internet or API key configuration.
+
+8. **Advance Tax & Section 234C Penalty Planner (`/src/engine/advanceTax.ts`):**
    - Calculates quarterly installment targets (June 15, Sept 15, Dec 15, March 15).
    - Highlights **Section 211(1)(b) Statutory Privilege** for presumptive taxpayers (single March 15 payment deadline with exemption from Q1-Q3 Section 234C interest penalties).
 
-6. **Cross-Border Export & GST Invoice Engine (`/src/engine/invoiceExporter.ts`):**
+9. **Cross-Border Export & GST Invoice Engine (`/src/engine/invoiceExporter.ts`):**
    - Auto-maps Service Accounting Codes (e.g., `998314` for IT Consultancy).
-   - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports:
-     `"SUPPLY MEANT FOR EXPORT UNDER BOND OR LETTER OF UNDERTAKING (LUT) WITHOUT PAYMENT OF INTEGRATED TAX (IGST)"`.
+   - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports.
 
-7. **Government ITR-4 (Sugam) JSON Mapper (`/src/engine/itr4Schema.ts`):**
-   - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
+10. **Government ITR-4 (Sugam) JSON Mapper (`/src/engine/itr4Schema.ts`):**
+    - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
 
 ---
 
@@ -51,7 +62,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 20 automated unit tests using Vitest covering all core engine edge cases.
+Runs 22 automated unit tests across 7 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -66,6 +77,10 @@ npm start
 ```
 ├── taxSchema.json                 # Core Rules-as-Code tax schema payload
 ├── server.ts                      # Express server exposing REST APIs and Vite middleware
+├── ARCHITECTURE.md                # System architecture documentation
+├── INTERN_OPERATIONS_GUIDE.md     # Intern troubleshooting & operational guide
+├── README.md                      # Application documentation
+├── package.json                   # Dependencies & build scripts
 ├── src/
 │   ├── config/
 │   │   └── taxSchema.json         # Module schema source
@@ -77,31 +92,33 @@ npm start
 │   │   ├── presumptiveTax.ts      # Module 3: Deemed profit & regime tax calculator
 │   │   ├── advanceTax.ts          # Module 4: Advance tax schedule & 234C penalties
 │   │   ├── invoiceExporter.ts     # Module 5: GST & LUT Zero-Rated Export invoice metadata
-│   │   └── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter
+│   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter
+│   │   └── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
+│   ├── utils/
+│   │   └── pdfExporter.ts        # PDF Report Exporter (jsPDF engine)
 │   ├── components/
 │   │   ├── Header.tsx             # Navigation header
-│   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator
+│   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator with Local Storage & PDF export
 │   │   ├── CashSurveillanceTab.tsx# Cash threshold surveillance dashboard
 │   │   ├── AdvanceTaxTab.tsx      # Quarterly advance tax planner
 │   │   ├── ExportInvoiceTab.tsx   # Cross-border export invoice generator
 │   │   ├── ITR4MapperTab.tsx      # Official ITR-4 Sugam JSON mapper
+│   │   ├── AIAdvisorTab.tsx       # AI Tax Advisor interface
 │   │   └── SchemaInspectorTab.tsx # RaC JSON Schema Inspector & live updater
 │   ├── App.tsx                    # Main React application
 │   ├── main.tsx                   # React DOM entrypoint
 │   └── index.css                  # Tailwind CSS styling
-├── tests/                         # Automated Vitest test suites
-│   ├── eligibility.test.ts
-│   ├── cashSurveillance.test.ts
-│   ├── presumptiveTax.test.ts
-│   ├── advanceTax.test.ts
-│   ├── invoiceExporter.test.ts
-│   └── itr4Schema.test.ts
-├── ARCHITECTURE.md                # System architecture documentation
-├── README.md                      # Application documentation
-└── package.json                   # Dependencies & build scripts
+└── tests/                         # Automated Vitest test suites
+    ├── eligibility.test.ts
+    ├── cashSurveillance.test.ts
+    ├── presumptiveTax.test.ts
+    ├── advanceTax.test.ts
+    ├── invoiceExporter.test.ts
+    ├── itr4Schema.test.ts
+    └── aiAdvisor.test.ts
 ```
 
 ---
 
 ## ⚖️ Legal & Compliance Disclaimer
-Outputs produced by this software are automated estimations based on user inputs and statutory rules specified in `taxSchema.json` for FY 2026-27. This application does not constitute formal legal or Chartered Accountancy advice.
+Outputs produced by this software are automated estimations based on user inputs and statutory rules specified in `taxSchema.json` for FY 2026-27 / AY 2027-28 under the Indian Income Tax Act (as amended). This application does not constitute formal legal or Chartered Accountancy advice.
