@@ -24,11 +24,13 @@ interface CalculatorTabProps {
     cashSurveillance: CashSurveillanceResult;
     presumptive: PresumptiveTaxResult;
   } | null;
+  onNavigateToAI?: () => void;
 }
 
 export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   onEvaluate,
   evaluationData,
+  onNavigateToAI,
 }) => {
   const [entityType, setEntityType] = useState<EntityType>('INDIVIDUAL');
   const [activityType, setActivityType] = useState<'PROFESSION' | 'BUSINESS'>('PROFESSION');
@@ -446,16 +448,29 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
               </div>
 
               {/* Tax Savings Note */}
-              <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center gap-3 text-xs">
-                <TrendingDown className="w-5 h-5 text-emerald-400 shrink-0" />
-                <div>
-                  <span className="font-bold text-emerald-400">
-                    Net Tax Savings: {formatINR(presumptive.taxSavings)}
-                  </span>
-                  <p className="text-slate-400 text-[11px]">
-                    Option for {presumptive.recommendedRegime} Tax Regime yields lower tax outlay.
-                  </p>
+              <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <TrendingDown className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <div>
+                    <span className="font-bold text-emerald-400">
+                      Net Tax Savings: {formatINR(presumptive.taxSavings)}
+                    </span>
+                    <p className="text-slate-400 text-[11px]">
+                      Option for {presumptive.recommendedRegime} Tax Regime yields lower tax outlay.
+                    </p>
+                  </div>
                 </div>
+
+                {onNavigateToAI && (
+                  <button
+                    onClick={onNavigateToAI}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm shrink-0 transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Get Tax Plan</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           )}

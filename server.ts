@@ -15,6 +15,7 @@ import { generateInvoiceExportMetadata } from './src/engine/invoiceExporter.js';
 import { generateITR4Json } from './src/engine/itr4Schema.js';
 import { calculatePresumptiveTax } from './src/engine/presumptiveTax.js';
 import { getTaxSchema, setTaxSchema } from './src/engine/schemaLoader.js';
+import { generateAITaxTips } from './src/engine/aiAdvisor.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -205,6 +206,73 @@ async function startServer() {
       });
 
       res.json({ status: 'success', itr4: itr4Json });
+    } catch (err: any) {
+      res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
+  // 8. AI Personalized Tax Advisor API (Gemini 3.6 Flash Integration)
+  app.post('/api/tax/ai-tips', async (req, res) => {
+    try {
+      const {
+        entityType = 'INDIVIDUAL',
+        activityType = 'PROFESSION',
+        professionCategory = 'IT_SOFTWARE',
+        businessCategory,
+        grossReceipts = 4800000,
+        cashReceipts = 120000,
+        declaredProfit,
+        otherIncome = 0,
+        chapterVIADeductions = 150000,
+        tdsClaimed = 0,
+      } = req.body;
+
+      const eligibility = evaluateEligibility({
+        entityType,
+        activityType,
+        professionCategory,
+        businessCategory,
+        grossReceipts,
+        cashReceipts,
+        declaredProfit,
+      });
+
+      const cashSurveillance = evaluateCashSurveillance({
+        grossReceipts,
+        cashReceipts,
+      });
+
+      const presumptive = calculatePresumptiveTax({
+        workflowRoute: eligibility.workflowRoute,
+        grossReceipts,
+        cashReceipts,
+        declaredProfit,
+        otherIncome,
+        chapterVIADeductions,
+      });
+
+      const tipsResponse = await generateAITaxTips({
+        entityType,
+        activityType,
+        professionCategory,
+        businessCategory,
+        grossReceipts,
+        cashReceipts,
+        cashPercentage: cashSurveillance.cashPercentage,
+        deemedProfit: presumptive.deemedProfit,
+        recommendedRegime: presumptive.recommendedRegime,
+        oldRegimeTax: presumptive.oldRegime.totalTaxLiability,
+        newRegimeTax: presumptive.newRegime.totalTaxLiability,
+        taxSavings: presumptive.taxSavings,
+        chapterVIADeductions,
+        tdsClaimed,
+        workflowRoute: eligibility.workflowRoute,
+      });
+
+      res.json({
+        status: 'success',
+        data: tipsResponse,
+      });
     } catch (err: any) {
       res.status(500).json({ status: 'error', message: err.message });
     }
