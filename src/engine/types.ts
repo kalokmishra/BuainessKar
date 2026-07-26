@@ -313,3 +313,18 @@ export interface ITR4SchemaOutput {
     };
   };
 }
+
+export interface AITaxTip {
+  title: string;
+  category: 'REGIME_OPTIMIZATION' | 'CASH_SURVEILLANCE' | 'ADVANCE_TAX' | 'DEDUCTIONS' | 'GST_LUT' | 'BUSINESS_EXPENSE';
+  recommendation: string;
+  impact: string;
+  statutoryRef: string;
+}
+
+export interface AITaxAdvisorResponse {
+  summary: string;
+  overallStrategy: string;
+  tips: AITaxTip[];
+  actionChecklist: string[];
+}

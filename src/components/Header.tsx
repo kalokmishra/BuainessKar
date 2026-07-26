@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, FileText, Calculator, AlertTriangle, Calendar, FileSpreadsheet, Code2 } from 'lucide-react';
+import { ShieldCheck, FileText, Calculator, AlertTriangle, Calendar, FileSpreadsheet, Code2, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -16,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const tabs = [
     { id: 'calculator', label: 'Engine Calculator', icon: Calculator },
+    { id: 'ai-advisor', label: 'Tax Advisor', icon: Sparkles },
     { id: 'surveillance', label: 'Cash Surveillance', icon: AlertTriangle },
     { id: 'advancetax', label: 'Advance Tax & 234C', icon: Calendar },
     { id: 'invoice', label: 'GST & LUT Export', icon: FileSpreadsheet },

@@ -6,6 +6,7 @@ import { AdvanceTaxTab } from './components/AdvanceTaxTab';
 import { ExportInvoiceTab } from './components/ExportInvoiceTab';
 import { ITR4MapperTab } from './components/ITR4MapperTab';
 import { SchemaInspectorTab } from './components/SchemaInspectorTab';
+import { AITaxAdvisorTab } from './components/AITaxAdvisorTab';
 
 import { getTaxSchema } from './engine/schemaLoader';
 import {
@@ -23,8 +24,10 @@ export default function App() {
     cashSurveillance: CashSurveillanceResult;
     presumptive: PresumptiveTaxResult;
   } | null>(null);
+  const [lastCalculatorInput, setLastCalculatorInput] = useState<any>(null);
 
   const handleRunEvaluation = async (inputData: any) => {
+    setLastCalculatorInput(inputData);
     try {
       const res = await fetch('/api/tax/evaluate', {
         method: 'POST',
@@ -63,7 +66,12 @@ export default function App() {
           <CalculatorTab
             onEvaluate={handleRunEvaluation}
             evaluationData={evaluationData}
+            onNavigateToAI={() => setActiveTab('ai-advisor')}
           />
+        )}
+
+        {activeTab === 'ai-advisor' && (
+          <AITaxAdvisorTab calculatorInput={lastCalculatorInput} />
         )}
 
         {activeTab === 'surveillance' && <CashSurveillanceTab />}
