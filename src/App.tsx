@@ -97,6 +97,8 @@ function MainAppContent() {
         {activeTab === 'itr4' && (
           <ITR4MapperTab
             presumptiveData={evaluationData?.presumptive}
+            advanceTaxData={evaluationData?.advanceTax}
+            calculatorInput={lastCalculatorInput}
           />
         )}
 

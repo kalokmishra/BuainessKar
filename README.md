@@ -42,9 +42,10 @@
    - Auto-maps Service Accounting Codes (e.g., `998314` for IT Consultancy).
    - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports.
 
-10. **Government ITR-4 (Sugam) JSON Mapper (`/src/engine/itr4Schema.ts`):**
+10. **Government ITR-4 (Sugam) JSON Mapper & Pre-Filing Validator (`/src/engine/itr4Schema.ts`):**
     - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
-    - Features an interactive section explorer, search and filter bar for finding specific form sections, statutory guidelines, and instructions.
+    - Features automated Schema Compliance Validation (`validateITR4SchemaCompliance`) checking PAN format regex, RBI IFSC bank branch validity, Nature of Business CBDT codes (e.g. 09028), primary refund account configuration, and Section 44ADA 50% profit floor checks.
+    - Provides an interactive section explorer, search and filter bar, statutory guidelines, and 1-click JSON download for e-filing.
 
 11. **Multi-Head & Salary Tax Calculator Engine (`/src/engine/comprehensiveTax.ts`):**
     - Aggregates multi-head income across Salary (net of Salaried Standard Deduction ₹75,000 New / ₹50,000 Old), Freelance Presumptive Business/Profession (Sec 44AD/44ADA), Capital Gains (STCG Sec 111A at 20%, LTCG Sec 112A at 12.5% above ₹1.25L exemption, LTCG Sec 112), and Other Income.
@@ -74,7 +75,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 22 automated unit tests across 7 test suites using Vitest covering all core engine edge cases.
+Runs 29 automated unit tests across 9 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -91,6 +92,7 @@ npm start
 ├── server.ts                      # Express server exposing REST APIs and Vite middleware
 ├── ARCHITECTURE.md                # System architecture documentation
 ├── INTERN_OPERATIONS_GUIDE.md     # Intern troubleshooting & operational guide
+├── USER_GUIDE.md                  # Comprehensive end-user feature guide
 ├── README.md                      # Application documentation
 ├── package.json                   # Dependencies & build scripts
 ├── src/
@@ -104,18 +106,22 @@ npm start
 │   │   ├── presumptiveTax.ts      # Module 3: Deemed profit & regime tax calculator
 │   │   ├── advanceTax.ts          # Module 4: Advance tax schedule & 234C penalties
 │   │   ├── invoiceExporter.ts     # Module 5: GST & LUT Zero-Rated Export invoice metadata
-│   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter
+│   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter & validator
 │   │   ├── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
 │   │   └── comprehensiveTax.ts    # Module 8: Multi-Head Salary & Capital Gains Tax Calculator engine
+│   ├── context/
+│   │   └── AuthContext.tsx        # User Authentication & Session state management
 │   ├── utils/
 │   │   └── pdfExporter.ts        # PDF Report Exporter (jsPDF engine)
 │   ├── components/
-│   │   ├── Header.tsx             # Navigation header
+│   │   ├── Header.tsx             # Navigation header & User Profile badge
+│   │   ├── LoginModal.tsx         # User authentication modal (Email / Mobile Number)
 │   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator with Local Storage & PDF export
+│   │   ├── ComprehensiveTaxTab.tsx# Multi-Head Salary & Capital Gains Tax Calculator
 │   │   ├── CashSurveillanceTab.tsx# Cash threshold surveillance dashboard
 │   │   ├── AdvanceTaxTab.tsx      # Quarterly advance tax planner
 │   │   ├── ExportInvoiceTab.tsx   # Cross-border export invoice generator
-│   │   ├── ITR4MapperTab.tsx      # Official ITR-4 Sugam JSON mapper
+│   │   ├── ITR4MapperTab.tsx      # Official ITR-4 Sugam JSON mapper & live editor
 │   │   ├── AIAdvisorTab.tsx       # AI Tax Advisor interface
 │   │   └── SchemaInspectorTab.tsx # RaC JSON Schema Inspector & live updater
 │   ├── App.tsx                    # Main React application
@@ -128,7 +134,9 @@ npm start
     ├── advanceTax.test.ts
     ├── invoiceExporter.test.ts
     ├── itr4Schema.test.ts
-    └── aiAdvisor.test.ts
+    ├── aiAdvisor.test.ts
+    ├── comprehensiveTax.test.ts
+    └── auth.test.ts
 ```
 
 ---

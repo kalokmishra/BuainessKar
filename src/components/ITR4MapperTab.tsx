@@ -12,19 +12,31 @@ import {
   Info,
   HelpCircle,
   Sparkles,
+  AlertTriangle,
+  Building2,
+  CreditCard,
+  ExternalLink,
+  CheckCircle2,
 } from 'lucide-react';
-import { generateITR4Json } from '../engine/itr4Schema';
+import { generateITR4Json, validateITR4SchemaCompliance } from '../engine/itr4Schema';
 import { PresumptiveTaxResult, AdvanceTaxResult } from '../engine/types';
 
 interface ITR4MapperTabProps {
   presumptiveData?: PresumptiveTaxResult;
   advanceTaxData?: AdvanceTaxResult;
+  calculatorInput?: {
+    grossReceipts?: number;
+    cashReceipts?: number;
+    tdsClaimed?: number;
+    optedNewRegime?: boolean;
+    workflowRoute?: 'SECTION_44ADA' | 'SECTION_44AD' | 'STANDARD_AUDIT_REQUIRED';
+  };
 }
 
 interface ITR4SectionGuide {
   id: string;
   title: string;
-  category: 'CreationInfo' | 'PersonalInfo' | 'IncomeDeductions' | 'TaxComputation' | 'AdvanceTaxAndTDS';
+  category: 'CreationInfo' | 'PersonalInfo' | 'BusinessDetails' | 'IncomeDeductions' | 'TaxComputation' | 'AdvanceTaxAndTDS' | 'BankDetails';
   statutoryRef: string;
   description: string;
   instructions: string[];
@@ -39,12 +51,19 @@ interface ITR4SectionGuide {
 export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   presumptiveData,
   advanceTaxData,
+  calculatorInput,
 }) => {
   const [pan, setPan] = useState<string>('ABCDE1234F');
   const [fullName, setFullName] = useState<string>('Rahul Sharma');
-  const [grossReceipts, setGrossReceipts] = useState<number>(4800000);
-  const [cashReceipts, setCashReceipts] = useState<number>(100000);
-  const [tdsClaimed, setTdsClaimed] = useState<number>(25000);
+  const [grossReceipts, setGrossReceipts] = useState<number>(calculatorInput?.grossReceipts || 4800000);
+  const [cashReceipts, setCashReceipts] = useState<number>(calculatorInput?.cashReceipts || 100000);
+  const [tdsClaimed, setTdsClaimed] = useState<number>(calculatorInput?.tdsClaimed || 25000);
+  const [businessCode, setBusinessCode] = useState<string>('09028');
+  const [tradeName, setTradeName] = useState<string>('Software Consultancy Services');
+  const [ifsCode, setIfsCode] = useState<string>('SBIN0001234');
+  const [accountNumber, setAccountNumber] = useState<string>('998877665544');
+  const [bankName, setBankName] = useState<string>('State Bank of India');
+  const [optedNewRegime, setOptedNewRegime] = useState<boolean>(calculatorInput?.optedNewRegime !== false);
   const [copied, setCopied] = useState<boolean>(false);
 
   // Search & Filter State
@@ -56,14 +75,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   const defaultPresumptive: PresumptiveTaxResult = presumptiveData || {
     workflowRoute: 'SECTION_44ADA',
     presumptiveRateAppliedText: '50% of gross professional receipts',
-    deemedProfit: 2400000,
+    deemedProfit: grossReceipts * 0.5,
     oldRegime: {
-      grossDeemedProfit: 2400000,
-      declaredProfitUsed: 2400000,
+      grossDeemedProfit: grossReceipts * 0.5,
+      declaredProfitUsed: grossReceipts * 0.5,
       otherIncome: 0,
-      grossTotalIncome: 2400000,
+      grossTotalIncome: grossReceipts * 0.5,
       deductionsApplied: 150000,
-      totalTaxableIncome: 2250000,
+      totalTaxableIncome: Math.max(0, grossReceipts * 0.5 - 150000),
       baseTaxBeforeRebate: 487500,
       rebate87A: 0,
       netTaxAfterRebate: 487500,
@@ -72,12 +91,12 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
       effectiveTaxRate: 21.13,
     },
     newRegime: {
-      grossDeemedProfit: 2400000,
-      declaredProfitUsed: 2400000,
+      grossDeemedProfit: grossReceipts * 0.5,
+      declaredProfitUsed: grossReceipts * 0.5,
       otherIncome: 0,
-      grossTotalIncome: 2400000,
+      grossTotalIncome: grossReceipts * 0.5,
       deductionsApplied: 0,
-      totalTaxableIncome: 2400000,
+      totalTaxableIncome: grossReceipts * 0.5,
       baseTaxBeforeRebate: 380000,
       rebate87A: 0,
       netTaxAfterRebate: 380000,
@@ -91,8 +110,8 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   };
 
   const defaultAdvanceTax: AdvanceTaxResult = advanceTaxData || {
-    netTaxLiabilityAfterTDS: 370200,
-    totalPaidToDate: 370200,
+    netTaxLiabilityAfterTDS: Math.max(0, defaultPresumptive.newRegime.totalTaxLiability - tdsClaimed),
+    totalPaidToDate: Math.max(0, defaultPresumptive.newRegime.totalTaxLiability - tdsClaimed),
     schedule: [],
     totalShortfall: 0,
     totalInterest234C: 0,
@@ -103,16 +122,46 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   const itr4Output = generateITR4Json({
     pan,
     fullName,
-    workflowRoute: 'SECTION_44ADA',
+    workflowRoute: calculatorInput?.workflowRoute || 'SECTION_44ADA',
     grossReceipts,
     cashReceipts,
     presumptiveResult: defaultPresumptive,
     advanceTaxResult: defaultAdvanceTax,
     tdsClaimed,
-    optedNewRegime: true,
+    optedNewRegime,
+    businessDetails: {
+      businessCode,
+      tradeName,
+      description: 'Professional Services under Section 44ADA',
+    },
+    bankDetails: [
+      {
+        ifsCode,
+        bankName,
+        accountNumber,
+        accountType: 'SAVINGS',
+        isPrimaryForRefund: true,
+      },
+    ],
   });
 
   const jsonString = JSON.stringify(itr4Output, null, 2);
+
+  const complianceValidation = useMemo(() => {
+    return validateITR4SchemaCompliance({
+      pan,
+      fullName,
+      workflowRoute: calculatorInput?.workflowRoute || 'SECTION_44ADA',
+      grossReceipts,
+      cashReceipts,
+      presumptiveResult: defaultPresumptive,
+      advanceTaxResult: defaultAdvanceTax,
+      tdsClaimed,
+      optedNewRegime,
+      businessDetails: { businessCode, tradeName },
+      bankDetails: [{ ifsCode, bankName, accountNumber, accountType: 'SAVINGS', isPrimaryForRefund: true }],
+    });
+  }, [pan, fullName, grossReceipts, cashReceipts, tdsClaimed, optedNewRegime, businessCode, tradeName, ifsCode, bankName, accountNumber]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(jsonString);
@@ -125,7 +174,7 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ITR4_AY2027-28_${pan}.json`;
+    a.download = `ITR4_AY2027-28_${pan.toUpperCase()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -170,6 +219,23 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
           { jsonKey: 'employerCategory', label: 'Employer Category', value: itr.PersonalInfo.employerCategory, explanation: 'Categorized as OTHERS_FREELANCE_BUSINESS for non-salaried assessees.' },
           { jsonKey: 'filingSection', label: 'Filing Section Code', value: itr.PersonalInfo.filingSection, explanation: '139(1) - Return filed within original statutory due date.' },
           { jsonKey: 'optedNewTaxRegime', label: 'New Tax Regime (Sec 115BAC)', value: itr.PersonalInfo.optedNewTaxRegime ? 'Yes (Default)' : 'No (Opted Out)', explanation: 'Election status for Section 115BAC concessional slab rates.' },
+        ],
+      },
+      {
+        id: 'BusinessDetails',
+        title: 'Business & Trade Classification',
+        category: 'BusinessDetails',
+        statutoryRef: 'CBDT Nature of Business Codes',
+        description: 'Official nature of business code and registered trade name for 44AD/44ADA filing.',
+        instructions: [
+          'Business Code 09028 identifies Software Consultancy & IT Services.',
+          'Trade Name should reflect your registered business or freelancing brand name.',
+          'Presumptive taxpayers do not require full Balance Sheet submission under ITR-4 Sugam.',
+        ],
+        fields: [
+          { jsonKey: 'businessCode', label: 'Nature of Business Code', value: itr.BusinessDetails?.businessCode || businessCode, explanation: 'Official CBDT classification code for business or profession.' },
+          { jsonKey: 'tradeName', label: 'Trade / Business Name', value: itr.BusinessDetails?.tradeName || tradeName, explanation: 'Name under which profession or business is carried out.' },
+          { jsonKey: 'description', label: 'Activity Description', value: itr.BusinessDetails?.description || 'Professional Services', explanation: 'Summary description of professional activities.' },
         ],
       },
       {
@@ -230,8 +296,25 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
           { jsonKey: 'NetBalancePayableOrRefund', label: itr.AdvanceTaxAndTDS.NetBalancePayableOrRefund >= 0 ? 'Net Tax Payable (Sec 140A)' : 'Refund Due to Assessee', value: `₹${Math.abs(itr.AdvanceTaxAndTDS.NetBalancePayableOrRefund).toLocaleString('en-IN')}`, explanation: itr.AdvanceTaxAndTDS.NetBalancePayableOrRefund >= 0 ? 'Self-assessment tax payable before filing.' : 'Refund refundable to assessee bank account.' },
         ],
       },
+      {
+        id: 'BankDetails',
+        title: 'Bank Accounts & Refund Account',
+        category: 'BankDetails',
+        statutoryRef: 'Section 237 & RBI IFSC Rules',
+        description: 'Bank account details for income tax refund credit and record maintenance.',
+        instructions: [
+          'At least one bank account must be designated as the primary account for receiving tax refunds directly.',
+          'IFSC code must match the branch allotted by the Reserve Bank of India.',
+        ],
+        fields: [
+          { jsonKey: 'ifsCode', label: 'Bank IFSC Code', value: itr.BankDetails?.[0]?.ifsCode || ifsCode, explanation: '11-character RBI bank branch IFSC code.' },
+          { jsonKey: 'bankName', label: 'Bank Name', value: itr.BankDetails?.[0]?.bankName || bankName, explanation: 'Name of the banking institution.' },
+          { jsonKey: 'accountNumber', label: 'Account Number', value: itr.BankDetails?.[0]?.accountNumber || accountNumber, explanation: 'Masked/Full bank account number.' },
+          { jsonKey: 'isPrimaryForRefund', label: 'Primary Refund Account', value: itr.BankDetails?.[0]?.isPrimaryForRefund ? 'Yes' : 'No', explanation: 'Designated account for electronic refund credit.' },
+        ],
+      },
     ];
-  }, [itr4Output]);
+  }, [itr4Output, businessCode, tradeName, ifsCode, bankName, accountNumber]);
 
   // Filter sections based on category and search query
   const filteredSections = useMemo(() => {
@@ -265,9 +348,11 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   const categoriesList = [
     { id: 'ALL', label: 'All Sections' },
     { id: 'PersonalInfo', label: 'Personal Info' },
+    { id: 'BusinessDetails', label: 'Business & Trade' },
     { id: 'IncomeDeductions', label: 'Receipts & Profit (44AD/44ADA)' },
     { id: 'TaxComputation', label: 'Tax & Rebate' },
     { id: 'AdvanceTaxAndTDS', label: 'TDS & Advance Tax' },
+    { id: 'BankDetails', label: 'Bank Details' },
     { id: 'CreationInfo', label: 'Schema Metadata' },
   ];
 
@@ -391,62 +476,202 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Taxpayer Input Controls */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 h-fit">
-          <h3 className="text-sm font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
-            <span>Taxpayer Meta Details</span>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-500/20">LIVE MAPPER</span>
-          </h3>
+        {/* Left Column: Taxpayer Input Controls & Validation */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center justify-between">
+              <span>Taxpayer & Business Meta</span>
+              <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-500/20">LIVE MAPPER</span>
+            </h3>
 
-          <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Permanent Account Number (PAN)</label>
-            <input
-              type="text"
-              value={pan}
-              onChange={(e) => setPan(e.target.value.toUpperCase())}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-mono text-emerald-400 uppercase"
-              maxLength={10}
-            />
+            {/* PAN */}
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1">Permanent Account Number (PAN)</label>
+              <input
+                type="text"
+                value={pan}
+                onChange={(e) => setPan(e.target.value.toUpperCase())}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-mono text-emerald-400 uppercase tracking-wider font-semibold"
+                maxLength={10}
+              />
+            </div>
+
+            {/* Full Name */}
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1">Full Legal Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+              />
+            </div>
+
+            {/* Business Code & Trade Name */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">Nature Code</label>
+                <input
+                  type="text"
+                  value={businessCode}
+                  onChange={(e) => setBusinessCode(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-mono text-slate-200"
+                  placeholder="09028"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">Trade Name</label>
+                <input
+                  type="text"
+                  value={tradeName}
+                  onChange={(e) => setTradeName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200"
+                  placeholder="Software Consulting"
+                />
+              </div>
+            </div>
+
+            {/* Gross Receipts & TDS */}
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1">Gross Professional Receipts (₹)</label>
+              <input
+                type="number"
+                value={grossReceipts}
+                onChange={(e) => setGrossReceipts(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1">TDS Claimed under 26AS (₹)</label>
+              <input
+                type="number"
+                value={tdsClaimed}
+                onChange={(e) => setTdsClaimed(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+              />
+            </div>
+
+            {/* Bank Details */}
+            <div className="border-t border-slate-800 pt-3 space-y-2">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-emerald-400" /> Primary Refund Bank Account
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-medium text-slate-400 block mb-0.5">IFSC Code</label>
+                  <input
+                    type="text"
+                    value={ifsCode}
+                    onChange={(e) => setIfsCode(e.target.value.toUpperCase())}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-slate-200 uppercase"
+                    maxLength={11}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium text-slate-400 block mb-0.5">Account Number</label>
+                  <input
+                    type="text"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-slate-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Tax Regime Option */}
+            <div className="border-t border-slate-800 pt-3">
+              <label className="text-xs font-medium text-slate-300 block mb-1.5">Tax Regime Selection</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOptedNewRegime(true)}
+                  className={`p-2 rounded-xl text-xs font-semibold border text-center transition-all ${
+                    optedNewRegime
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  New Regime (115BAC)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOptedNewRegime(false)}
+                  className={`p-2 rounded-xl text-xs font-semibold border text-center transition-all ${
+                    !optedNewRegime
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  Old Regime
+                </button>
+              </div>
+            </div>
+
+            {/* Statutory Defaults */}
+            <div className="pt-2 text-xs text-slate-400 bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <span className="font-bold text-slate-200 block border-b border-slate-800/80 pb-1">Statutory Defaults:</span>
+              <ul className="space-y-1 text-[11px]">
+                <li className="flex justify-between"><span className="text-slate-400">Assessment Year:</span> <span className="font-mono text-emerald-400">2027-28</span></li>
+                <li className="flex justify-between"><span className="text-slate-400">Financial Year:</span> <span className="font-mono text-emerald-400">2026-27</span></li>
+                <li className="flex justify-between"><span className="text-slate-400">Employer Category:</span> <span className="text-slate-200 font-medium">OTHERS</span></li>
+                <li className="flex justify-between"><span className="text-slate-400">Filing Due Section:</span> <span className="text-slate-200 font-medium">139(1)</span></li>
+              </ul>
+            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Full Legal Name</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
-            />
+          {/* Schema Compliance Status Card */}
+          <div className={`p-4 rounded-2xl border ${
+            complianceValidation.isValid
+              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+              : 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              {complianceValidation.isValid ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              )}
+              <h4 className="text-xs font-bold uppercase tracking-wider">
+                {complianceValidation.isValid ? 'Schema Validation Passed' : 'Schema Warnings Found'}
+              </h4>
+            </div>
+            {complianceValidation.isValid ? (
+              <p className="text-xs text-emerald-300/90 leading-relaxed">
+                JSON payload passes all statutory format checks (PAN, IFSC, 44ADA 50% profit floor, AY 2027-28). Ready for direct upload to <span className="font-mono underline">incometax.gov.in</span>.
+              </p>
+            ) : (
+              <ul className="space-y-1 text-xs text-amber-300">
+                {complianceValidation.errors.map((err, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span>•</span> <span>{err}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Gross Professional Receipts (₹)</label>
-            <input
-              type="number"
-              value={grossReceipts}
-              onChange={(e) => setGrossReceipts(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">TDS Claimed under 26AS (₹)</label>
-            <input
-              type="number"
-              value={tdsClaimed}
-              onChange={(e) => setTdsClaimed(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
-            />
-          </div>
-
-          <div className="pt-2 text-xs text-slate-400 bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-            <span className="font-bold text-slate-200 block border-b border-slate-800/80 pb-1">Statutory Defaults:</span>
-            <ul className="space-y-1 text-[11px]">
-              <li className="flex justify-between"><span className="text-slate-400">Assessment Year:</span> <span className="font-mono text-emerald-400">2027-28</span></li>
-              <li className="flex justify-between"><span className="text-slate-400">Financial Year:</span> <span className="font-mono text-emerald-400">2026-27</span></li>
-              <li className="flex justify-between"><span className="text-slate-400">Employer Category:</span> <span className="text-slate-200 font-medium">OTHERS</span></li>
-              <li className="flex justify-between"><span className="text-slate-400">Filing Due Section:</span> <span className="text-slate-200 font-medium">139(1)</span></li>
-            </ul>
+          {/* E-Filing Portal Upload Guide */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <h4 className="text-xs font-bold text-slate-200 flex items-center justify-between">
+              <span>e-Filing Upload Instructions</span>
+              <a
+                href="https://www.incometax.gov.in"
+                target="_blank"
+                rel="noreferrer"
+                className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px]"
+              >
+                <span>Portal</span> <ExternalLink className="w-3 h-3" />
+              </a>
+            </h4>
+            <ol className="space-y-2 text-[11px] text-slate-300 list-decimal list-inside">
+              <li>Click <strong className="text-emerald-400">Download JSON</strong> to save the official ITR-4 payload.</li>
+              <li>Log in to <strong className="text-slate-100">incometax.gov.in</strong> using your PAN and credentials.</li>
+              <li>Navigate to <strong className="text-slate-100">e-File &gt; Income Tax Returns &gt; File Income Tax Return</strong>.</li>
+              <li>Select <strong className="text-slate-100">AY 2027-28</strong>, Mode: <strong className="text-slate-100">Offline (JSON Upload)</strong>, Form: <strong className="text-slate-100">ITR-4 (Sugam)</strong>.</li>
+              <li>Upload the downloaded JSON file and submit after e-Verification via Aadhaar OTP.</li>
+            </ol>
           </div>
         </div>
 

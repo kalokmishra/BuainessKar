@@ -275,6 +275,14 @@ export interface ITR4PersonalDetails {
   employerCategory: string;
   filingSection: string; // e.g. '139(1)'
   optedNewTaxRegime: boolean;
+  address?: {
+    flatDoorBuilding?: string;
+    roadStreet?: string;
+    areaLocality?: string;
+    townCityDistrict?: string;
+    stateCode?: string;
+    pinCode?: string;
+  };
 }
 
 export interface ITR4SchemaOutput {
@@ -286,6 +294,11 @@ export interface ITR4SchemaOutput {
         Timestamp: string;
       };
       PersonalInfo: ITR4PersonalDetails;
+      BusinessDetails?: {
+        businessCode: string;
+        tradeName: string;
+        description: string;
+      };
       IncomeDeductions: {
         GrossReceipts44ADA?: number;
         PresumptiveIncome44ADA?: number;
@@ -309,6 +322,13 @@ export interface ITR4SchemaOutput {
         TotalAdvanceTaxPaid: number;
         NetBalancePayableOrRefund: number;
       };
+      BankDetails?: Array<{
+        ifsCode: string;
+        bankName: string;
+        accountNumber: string;
+        accountType?: string;
+        isPrimaryForRefund?: boolean;
+      }>;
       StatutoryDisclaimer: string;
     };
   };

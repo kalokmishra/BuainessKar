@@ -10,6 +10,29 @@ import {
   PresumptiveTaxResult,
 } from './types.js';
 
+export interface ITR4Address {
+  flatDoorBuilding?: string;
+  roadStreet?: string;
+  areaLocality?: string;
+  townCityDistrict?: string;
+  stateCode?: string;
+  pinCode?: string;
+}
+
+export interface ITR4BankAccount {
+  ifsCode: string;
+  bankName: string;
+  accountNumber: string;
+  accountType?: 'SAVINGS' | 'CURRENT';
+  isPrimaryForRefund?: boolean;
+}
+
+export interface ITR4BusinessDetails {
+  businessCode?: string;
+  tradeName?: string;
+  description?: string;
+}
+
 export interface ITR4MappingInput {
   pan: string;
   fullName: string;
@@ -17,11 +40,75 @@ export interface ITR4MappingInput {
   grossReceipts: number;
   cashReceipts: number;
   digitalReceipts?: number;
-  presumptiveResult: PresumptiveTaxResult;
-  advanceTaxResult: AdvanceTaxResult;
+  presumptiveResult?: PresumptiveTaxResult;
+  advanceTaxResult?: AdvanceTaxResult;
   tdsClaimed?: number;
   chapterVIADeductions?: number;
   optedNewRegime?: boolean;
+  address?: ITR4Address;
+  bankDetails?: ITR4BankAccount[];
+  businessDetails?: ITR4BusinessDetails;
+}
+
+/**
+ * Validates basic PAN format (5 letters, 4 digits, 1 letter)
+ */
+export function isValidPan(pan: string): boolean {
+  return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan.toUpperCase());
+}
+
+/**
+ * Validates IFSC format (4 letters, 0, 6 alphanumeric)
+ */
+export function isValidIfsc(ifsc: string): boolean {
+  return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc.toUpperCase());
+}
+
+/**
+ * Validates ITR-4 JSON compliance prior to e-filing export
+ */
+export function validateITR4SchemaCompliance(input: ITR4MappingInput): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+} {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!input.pan || !isValidPan(input.pan)) {
+    errors.push('PAN is invalid or missing. Must be 10-character alphanumeric format (e.g. ABCDE1234F).');
+  }
+
+  if (!input.fullName || input.fullName.trim().length < 2) {
+    errors.push('Full legal name is required.');
+  }
+
+  if (input.grossReceipts <= 0) {
+    errors.push('Gross receipts must be greater than zero for presumptive filing.');
+  }
+
+  if (input.cashReceipts > input.grossReceipts) {
+    errors.push('Cash receipts cannot exceed total gross receipts.');
+  }
+
+  if (input.bankDetails && input.bankDetails.length > 0) {
+    const invalidIfsc = input.bankDetails.find((b) => !isValidIfsc(b.ifsCode));
+    if (invalidIfsc) {
+      warnings.push(`Bank IFSC '${invalidIfsc.ifsCode}' may be invalid. Ensure 11-character standard format.`);
+    }
+  } else {
+    warnings.push('No bank account details specified. e-Filing refund requires at least one primary bank account.');
+  }
+
+  if (input.workflowRoute === 'STANDARD_AUDIT_REQUIRED') {
+    warnings.push('Selected workflow route is STANDARD_AUDIT_REQUIRED. ITR-4 (Sugam) is intended for presumptive taxpayers (44AD/44ADA/44AE). Section 44AB taxpayers should file ITR-3.');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  };
 }
 
 /**
@@ -62,6 +149,19 @@ export function generateITR4Json(input: ITR4MappingInput): ITR4SchemaOutput {
           employerCategory: 'OTHERS_FREELANCE_BUSINESS',
           filingSection: '139(1)_ON_OR_BEFORE_DUE_DATE',
           optedNewTaxRegime: isNewRegime,
+          address: input.address || {
+            flatDoorBuilding: 'Flat 402, Building A',
+            roadStreet: 'MG Road',
+            areaLocality: 'Connaught Place',
+            townCityDistrict: 'New Delhi',
+            stateCode: '07',
+            pinCode: '110001',
+          },
+        },
+        BusinessDetails: {
+          businessCode: input.businessDetails?.businessCode || (is44ADA ? '09028' : '02010'),
+          tradeName: input.businessDetails?.tradeName || input.fullName || 'Consultancy Services',
+          description: input.businessDetails?.description || (is44ADA ? 'Professional Services under Sec 44ADA' : 'Business Turnover under Sec 44AD'),
         },
         IncomeDeductions: {
           GrossReceipts44ADA: is44ADA ? gross : undefined,
@@ -86,6 +186,15 @@ export function generateITR4Json(input: ITR4MappingInput): ITR4SchemaOutput {
           TotalAdvanceTaxPaid: totalPaid,
           NetBalancePayableOrRefund: netBalance,
         },
+        BankDetails: input.bankDetails || [
+          {
+            ifsCode: 'SBIN0001234',
+            bankName: 'State Bank of India',
+            accountNumber: 'XXXXXX1234',
+            accountType: 'SAVINGS',
+            isPrimaryForRefund: true,
+          },
+        ],
         StatutoryDisclaimer: schema.meta.disclaimer,
       },
     },
