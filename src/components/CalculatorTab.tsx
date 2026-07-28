@@ -29,6 +29,8 @@ import {
   BusinessCategory,
 } from '../engine/types';
 import { generateTaxCalculationPdf } from '../utils/pdfExporter';
+import { generateITR4Json } from '../engine/itr4Schema';
+import { calculateAdvanceTax } from '../engine/advanceTax';
 
 interface SavedCalculation {
   id: string;
@@ -233,6 +235,38 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
     });
 
     triggerNotification('PDF Tax Report exported successfully!');
+  };
+
+  const handleExportITR4Json = () => {
+    if (!presumptive) return;
+    const adv = calculateAdvanceTax({
+      estimatedAnnualTaxLiability:
+        presumptive.recommendedRegime === 'NEW'
+          ? presumptive.newRegime.totalTaxLiability
+          : presumptive.oldRegime.totalTaxLiability,
+      paymentsMade: [],
+      isPresumptiveTaxpayer: true,
+    });
+    const itr4 = generateITR4Json({
+      pan: 'ABCDE1234F',
+      fullName: 'Valued Taxpayer',
+      workflowRoute: eligibility?.workflowRoute || 'SECTION_44ADA',
+      grossReceipts,
+      cashReceipts,
+      presumptiveResult: presumptive,
+      advanceTaxResult: adv,
+      tdsClaimed: 0,
+      optedNewRegime: presumptive.recommendedRegime === 'NEW',
+    });
+    const jsonString = JSON.stringify(itr4, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ITR4_AY2027-28_ABCDE1234F.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    triggerNotification('Official ITR-4 (Sugam) e-Filing JSON downloaded successfully!');
   };
 
   return (
@@ -693,14 +727,24 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                   <span>Presumptive Deemed Income</span>
                   <span className="text-emerald-400 lowercase font-normal">({presumptive.presumptiveRateAppliedText})</span>
                 </h4>
-                <button
-                  onClick={handleExportPdf}
-                  className="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all"
-                  title="Download PDF report for current computation"
-                >
-                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Download PDF Report</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportITR4Json}
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all"
+                    title="Export e-Filing JSON for Income Tax Portal"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Export ITR-4 JSON</span>
+                  </button>
+                  <button
+                    onClick={handleExportPdf}
+                    className="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all"
+                    title="Download PDF report for current computation"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Download PDF Report</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">

@@ -20,11 +20,13 @@ The application is built as a full-stack, Rules-as-Code (RaC) web app:
 │   ├── cashSurveillance.ts        <-- Cash receipt percentage monitoring (Normal / Warning / Violation)
 │   ├── advanceTax.ts              <-- Section 211 quarterly schedules & 234C delay interest
 │   ├── invoiceExporter.ts         <-- GST & zero-rated LUT export invoice generator
-│   ├── itr4Schema.ts              <-- Income Tax Dept ITR-4 (Sugam) JSON builder
-│   └── aiAdvisor.ts               <-- Gemini 3.6 Flash tax advisory prompt engine & fallback handler
-├── src/components/                <-- React UI components (Calculator, AI Advisor, Surveillance, etc.)
+│   ├── itr4Schema.ts              <-- Income Tax Dept ITR-4 (Sugam) JSON builder & validateITR4SchemaCompliance
+│   ├── aiAdvisor.ts               <-- Gemini 3.6 Flash tax advisory prompt engine & fallback handler
+│   └── comprehensiveTax.ts        <-- Multi-Head Salary & Capital Gains Tax Calculator engine
+├── src/context/                   <-- AuthContext user session management
+├── src/components/                <-- React UI components (Calculator, Comprehensive Tax, ITR-4 Mapper, etc.)
 ├── server.ts                      <-- Express backend & Vite middleware server (Port 3000)
-└── tests/                         <-- Vitest unit test suite (22+ unit tests covering engine logic)
+└── tests/                         <-- Vitest unit test suite (29 unit tests across 9 test suites)
 ```
 
 ---
@@ -120,10 +122,13 @@ Below are common issues interns may encounter, along with step-by-step diagnosti
 | `src/engine/cashSurveillance.ts` | Cash risk alerts | Update alert thresholds or bilingual message strings |
 | `src/engine/advanceTax.ts` | Section 211 & 234C | Verify quarterly dates (June, Sept, Dec, March 15) |
 | `src/engine/invoiceExporter.ts` | Export/GST invoice math | Verify SAC codes and LUT disclaimer text |
-| `src/engine/itr4Schema.ts` | ITR-4 JSON builder | Verify field mappings against IT Dept JSON schema |
+| `src/engine/itr4Schema.ts` | ITR-4 JSON builder & validator | Verify field mappings & `validateITR4SchemaCompliance` |
+| `src/engine/comprehensiveTax.ts` | Multi-head salary & capital gains engine | Maintain standard deduction and capital gains special rates |
+| `src/context/AuthContext.tsx` | User authentication & sessions | Manage Email / Indian Mobile Number session persistence |
 | `src/utils/pdfExporter.ts` | PDF Report Generator | Formats Section 44AD/44ADA calculation reports in jsPDF |
-| `src/components/CalculatorTab.tsx` | Main calculation screen | UI layout, input state, local storage & PDF export |
-| `tests/*.test.ts` | Test suites | Add new test cases whenever engine rules are updated |
+| `src/components/CalculatorTab.tsx` | Main calculation screen | UI layout, input state, local storage & PDF/JSON export |
+| `src/components/ITR4MapperTab.tsx` | ITR-4 Sugam mapper & validator UI | Form section explorer, validation banner & JSON exporter |
+| `tests/*.test.ts` | 9 Vitest test suites | Add new test cases whenever engine rules are updated |
 
 ---
 

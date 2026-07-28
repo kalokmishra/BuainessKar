@@ -102,15 +102,17 @@ Filing income tax as a Indian freelancer, independent consultant, software profe
 
 ---
 
-### 8. 📄 Government ITR-4 (Sugam) Section Explorer & JSON Generator (`ITR-4 JSON Mapper`)
+### 8. 📄 Government ITR-4 (Sugam) Section Explorer, Validator & JSON Exporter (`ITR-4 JSON Mapper`)
 * **Interactive Section Explorer**:
-  * Browse every section of the official ITR-4 form (Creation Metadata, Personal Info, Income & Presumptive Profit, Tax Computation, and Advance Tax/TDS Credits).
+  * Browse every section of the official ITR-4 form (Creation Metadata, Personal Info, Business & Nature Classification, Income & Presumptive Profit, Tax Computation, Advance Tax/TDS Credits, and Bank Details).
+* **Automated Pre-Filing Schema Validation**:
+  * Real-time compliance engine (`validateITR4SchemaCompliance`) validating 10-character PAN regex, 11-character RBI IFSC bank codes, CBDT Nature of Business classification (e.g. `09028` for Software Consulting), primary bank account configuration for electronic refund credit, and Section 44ADA 50% profit floor compliance.
 * **Smart Search & Filter Bar**:
-  * Filter form sections by keyword (e.g. `"44ADA"`, `"Rebate"`, `"139(1)"`, `"PAN"`, `"TDS"`) or category.
-* **Official CBDT Filing Instructions**:
-  * Read official Income Tax Department instructions and field explanations for each row.
+  * Filter form sections by keyword (e.g. `"44ADA"`, `"Rebate"`, `"139(1)"`, `"PAN"`, `"IFSC"`, `"Business"`) or category.
+* **Official CBDT Filing Instructions & Step-by-Step Upload Guide**:
+  * Read official Income Tax Department field explanations and follow a 5-step checklist for uploading the generated JSON directly to `incometax.gov.in` under AY 2027-28 Offline Filing mode.
 * **1-Click Official JSON Export**:
-  * Download the compiled, schema-validated JSON payload ready to upload directly to the e-filing portal (`incometax.gov.in`).
+  * Download the compiled, schema-validated JSON payload ready to upload directly to the e-filing portal without paying high CA software fees.
 
 ---
 
