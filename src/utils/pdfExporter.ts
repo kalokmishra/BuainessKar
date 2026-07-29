@@ -34,7 +34,7 @@ export const generateTaxCalculationPdf = (data: TaxPdfExportData) => {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text('INDIAN PRESUMPTIVE TAX EVALUATION REPORT', 14, 14);
+  doc.text('Businessकर - PRESUMPTIVE TAX EVALUATION REPORT', 14, 14);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');

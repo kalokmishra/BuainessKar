@@ -1,4 +1,4 @@
-# Day 1 Core Engine Architecture Documentation (Indian Tax Utility MVP)
+# Day 1 Core Engine Architecture Documentation (Businessकर Tax Utility)
 
 ## 1. Executive Summary & Rules-as-Code (RaC) Paradigm
 This application implements the core computational and compliance engine for a mobile-first tax utility tailored for Indian freelancers, consultants, and micro-businesses operating under **Section 44AD** and **Section 44ADA** of the Indian Income Tax Act (as amended and applicable for **Financial Year 2026-27 / Assessment Year 2027-28**).

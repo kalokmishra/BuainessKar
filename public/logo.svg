@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 550" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1658a0" />
+      <stop offset="100%" stop-color="#0e3a6c" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3cb043" />
+      <stop offset="100%" stop-color="#24802b" />
+    </linearGradient>
+    <linearGradient id="barGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e933c" />
+      <stop offset="100%" stop-color="#195a28" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Blue Shield -->
+  <path d="M250 45 C140 105 65 115 65 250 C65 390 170 475 250 510 C330 475 435 390 435 250 C435 115 360 105 250 45 Z" fill="#ffffff" stroke="url(#shieldGrad)" stroke-width="22" stroke-linejoin="round" />
+  
+  <!-- Inner Shield Outline -->
+  <path d="M250 78 C158 130 92 140 92 250 C92 368 182 442 250 472 C318 442 408 368 408 250 C408 140 342 130 250 78 Z" fill="none" stroke="#1d66b8" stroke-width="6" stroke-dasharray="none" />
+
+  <!-- Ashoka Chakra (Top-Left Wheel) -->
+  <g opacity="0.85">
+    <circle cx="215" cy="235" r="105" stroke="#1658a0" stroke-width="12" fill="none" />
+    <circle cx="215" cy="235" r="88" stroke="#1658a0" stroke-width="3" fill="none" />
+    <circle cx="215" cy="235" r="16" fill="#1658a0" />
+    <!-- Spokes -->
+    <line x1="215" y1="130" x2="215" y2="340" stroke="#1658a0" stroke-width="4" />
+    <line x1="110" y1="235" x2="320" y2="235" stroke="#1658a0" stroke-width="4" />
+    <line x1="141" y1="161" x2="289" y2="309" stroke="#1658a0" stroke-width="4" />
+    <line x1="141" y1="309" x2="289" y2="161" stroke="#1658a0" stroke-width="4" />
+    <line x1="121" y1="196" x2="309" y2="274" stroke="#1658a0" stroke-width="3.5" />
+    <line x1="121" y1="274" x2="309" y2="196" stroke="#1658a0" stroke-width="3.5" />
+    <line x1="176" y1="135" x2="254" y2="335" stroke="#1658a0" stroke-width="3.5" />
+    <line x1="254" y1="135" x2="176" y2="335" stroke="#1658a0" stroke-width="3.5" />
+  </g>
+
+  <!-- Bar Chart (3 vertical growth bars) -->
+  <g>
+    <!-- Bar 1 (Short Blue) -->
+    <rect x="150" y="300" width="36" height="85" rx="3" fill="#1658a0" />
+    
+    <!-- Bar 2 (Medium Dark Green) -->
+    <rect x="198" y="235" width="36" height="150" rx="3" fill="url(#barGrad2)" />
+    
+    <!-- Bar 3 (Tall Light Green with arrow tip top) -->
+    <path d="M246 170 L282 145 L282 385 L246 385 Z" fill="url(#greenGrad)" />
+  </g>
+
+  <!-- Swooping Green Growth Arrow -->
+  <g>
+    <!-- Curved Ribbon Tail -->
+    <path d="M42 305 C40 380 90 445 195 448 C290 450 385 395 445 285 C410 325 330 398 225 398 C145 398 80 365 82 308 Z" fill="url(#greenGrad)" />
+    <!-- Arrow Head pointing up-right -->
+    <path d="M375 295 L460 250 L410 338 L392 300 Z" fill="url(#greenGrad)" stroke="#1e6b23" stroke-width="3" stroke-linejoin="round" />
+  </g>
+</svg>

@@ -1,13 +1,13 @@
-# 📘 TaxPro India: Freelancer & Presumptive Tax Engine
+# 📘 Businessकर: Freelancer & Presumptive Tax Engine
 ## End-User Feature & Value Guide (AY 2027-28 / FY 2026-27)
 
 ---
 
-## 🌟 Executive Overview: Why TaxPro India?
+## 🌟 Executive Overview: Why Businessकर?
 
-Filing income tax as a Indian freelancer, independent consultant, software professional, or small business owner is often confusing, time-consuming, and risky. Managing complex tax regulations like **Section 44ADA**, **Section 44AD**, quarterly **Advance Tax penalties under Section 234C**, **Capital Gains taxes (STCG & LTCG)**, and **Cash Deposit limits** can lead to overpaying taxes or facing scrutiny from the Income Tax Department.
+Filing income tax as an Indian freelancer, independent consultant, software professional, or small business owner is often confusing, time-consuming, and risky. Managing complex tax regulations like **Section 44ADA**, **Section 44AD**, quarterly **Advance Tax penalties under Section 234C**, **Capital Gains taxes (STCG & LTCG)**, and **Cash Deposit limits** can lead to overpaying taxes or facing scrutiny from the Income Tax Department.
 
-**TaxPro India** is a complete, rules-as-code Tax Computation and Compliance Portal engineered specifically for modern Indian professionals. Whether you earn through domestic freelance contracts, salary plus freelance work, international client exports, or stock market investments, **TaxPro India** calculates your exact tax liability, optimizes your tax regime selection, monitors banking surveillance risks, and exports official **ITR-4 (Sugam) JSON payloads** for 1-click filing.
+**Businessकर** is a complete, rules-as-code Tax Computation and Compliance Portal engineered specifically for modern Indian professionals. Whether you earn through domestic freelance contracts, salary plus freelance work, international client exports, or stock market investments, **Businessकर** calculates your exact tax liability, optimizes your tax regime selection, monitors banking surveillance risks, and exports official **ITR-4 (Sugam) JSON payloads** for 1-click filing.
 
 ---
 
@@ -30,7 +30,7 @@ Filing income tax as a Indian freelancer, independent consultant, software profe
 * **Flexible Signup**: Create an account in seconds using either your **Email Address** (e.g. `name@domain.com`) or **10-digit Indian Mobile Number** (`9876543210`) with a static password.
 * **Instant Session Gatekeeper**: Ensures your sensitive financial inputs are private and only accessible during your authenticated session.
 * **Header Profile Badge**: Displays your registered name, identifier type, and a quick 1-click **Logout** button on every page.
-* **Pre-Populated Demo Accounts**: Test-drive the app instantly with built-in demo credentials (`rahul@taxpro.in` / `password123` or `9876543210` / `password123`).
+* **Pre-Populated Demo Accounts**: Test-drive the app instantly with built-in demo credentials (`rahul@businesskar.in` / `password123` or `9876543210` / `password123`).
 
 ---
 

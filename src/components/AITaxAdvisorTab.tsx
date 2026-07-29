@@ -142,7 +142,7 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-slate-100">
-                  Personalized Tax Advisor
+                  Businessकर AI Tax Advisor
                 </h2>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono flex items-center gap-1">
                   <BrainCircuit className="w-3 h-3" /> Smart Analysis

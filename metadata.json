@@ -1,5 +1,5 @@
 {
-  "name": "Tax Utility MVP - Section 44AD & 44ADA",
+  "name": "Businessकर",
   "description": "Rules-as-Code engine and mobile-first tax utility for Indian freelancers, consultants, and micro-businesses under Section 44AD and 44ADA of the Income Tax Act.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
