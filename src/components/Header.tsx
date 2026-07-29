@@ -44,64 +44,67 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-1 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
-              <Logo className="w-10 h-10" showText={false} />
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Logo, Title & FY/AY Badge */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-1 rounded-lg bg-slate-950 border border-slate-800 shrink-0">
+              <Logo className="w-8 h-8" showText={false} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-bold text-xl text-slate-100 tracking-tight flex items-center gap-1">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <h1 className="font-bold text-lg text-slate-100 tracking-tight flex items-center gap-1 leading-none">
                   <span>Business</span>
                   <span className="text-emerald-400">कर</span>
                 </h1>
-                <span className="text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                  FY {financialYear} (AY {assessmentYear})
+                {/* FY / AY 2-line badge */}
+                <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded flex flex-col leading-tight text-center tracking-tight">
+                  <span>FY {financialYear}</span>
+                  <span>AY {assessmentYear}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Section 44AD & 44ADA Rules-as-Code (RaC) Engine • Presumptive Tax Utility
+              <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                Section 44AD & 44ADA Presumptive Tax Utility
               </p>
             </div>
           </div>
 
-          {/* User Profile Badge & Logout Bar */}
+          {/* Right: Shortened User Profile Badge */}
           {currentUser && (
-            <div className="flex items-center gap-3 self-start md:self-auto bg-slate-950/80 p-2 rounded-xl border border-slate-800">
-              <div className="flex items-center gap-2 px-2 border-r border-slate-800">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
-                  <UserIcon className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-100 block leading-tight">
-                    {currentUser.name}
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                    {currentUser.type === 'email' ? (
-                      <Mail className="w-3 h-3 text-slate-400" />
-                    ) : (
-                      <Phone className="w-3 h-3 text-slate-400" />
-                    )}
-                    {currentUser.identifier}
-                  </span>
-                </div>
+            <div className="flex items-center gap-1.5 bg-slate-950/90 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
+              <div
+                className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0"
+                title={currentUser.name}
+              >
+                <UserIcon className="w-3.5 h-3.5" />
               </div>
-
+              <div className="hidden sm:block text-left pr-1">
+                <span className="text-xs font-bold text-slate-200 block leading-none truncate max-w-[110px]">
+                  {currentUser.name}
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono flex items-center gap-0.5 mt-0.5">
+                  {currentUser.type === 'email' ? (
+                    <Mail className="w-2.5 h-2.5 text-slate-400" />
+                  ) : (
+                    <Phone className="w-2.5 h-2.5 text-slate-400" />
+                  )}
+                  <span className="truncate max-w-[90px]">{currentUser.identifier}</span>
+                </span>
+              </div>
               <button
                 onClick={logout}
                 title="Sign Out"
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 transition-all font-medium"
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 p-1.5 sm:px-2 sm:py-1 rounded-md border border-slate-800 transition-colors font-medium ml-0.5"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden md:inline text-[11px]">Logout</span>
               </button>
             </div>
           )}
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="flex space-x-1 mt-4 overflow-x-auto pb-1 scrollbar-none">
+        <nav className="flex space-x-1 mt-2 overflow-x-auto pb-0.5 scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -109,13 +112,13 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20 font-semibold'
+                    ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-900/20 font-semibold'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 {tab.label}
               </button>
             );

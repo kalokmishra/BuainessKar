@@ -75,9 +75,7 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
     }
   };
 
-  useEffect(() => {
-    fetchAITips();
-  }, []);
+  // Remove auto-trigger on mount so AI analysis only runs when requested by user
 
   const handleAskFollowUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,7 +158,7 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm transition-all shrink-0 self-start md:self-auto"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            <span>{loading ? 'Analyzing Tax Data...' : 'Re-analyze Tax Data'}</span>
+            <span>{loading ? 'Analyzing Tax Data...' : advisorData ? 'Re-analyze Tax Data' : 'Run AI Analysis'}</span>
           </button>
         </div>
       </div>
@@ -189,6 +187,28 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
           </span>
         </div>
       </div>
+
+      {!loading && !advisorData && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center space-y-4">
+          <div className="inline-flex p-4 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-400">
+            <BrainCircuit className="w-8 h-8" />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-base font-bold text-slate-100">Ready to Analyze Your Tax Profile</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Click the button below to generate personalized statutory tax-saving strategies, regime optimization pathways, and advance tax checklists tailored directly to your turnover and income metrics.
+            </p>
+          </div>
+          <button
+            onClick={fetchAITips}
+            disabled={loading}
+            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Generate AI Tax Analysis</span>
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-4">

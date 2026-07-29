@@ -32,7 +32,7 @@
 
 7. **AI Tax Advisor (`/src/engine/aiAdvisor.ts`):**
    - Integrated with Gemini 3.6 Flash for intelligent tax query advisory and statutory planning.
-   - Equipped with rule-based offline fallbacks for seamless availability even without internet or API key configuration.
+   - User-triggered AI analysis ("Run AI Analysis") with rule-based offline fallbacks for seamless availability even without internet or API key configuration.
 
 8. **Advance Tax & Section 234C Penalty Planner (`/src/engine/advanceTax.ts`):**
    - Calculates quarterly installment targets (June 15, Sept 15, Dec 15, March 15).
