@@ -63,6 +63,7 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 ---
 
 ### 4. 🤖 AI Tax Advisor (`Tax Advisor`)
+* **User-Triggered AI Analysis**: Click "Run AI Analysis" or "Generate AI Tax Analysis" to generate customized statutory tax-saving strategies based on your current numbers.
 * **Gemini AI Integration**: Powered by Google DeepMind's Gemini model (with an offline rule-based fallback).
 * **Personalized Compliance Tips**: Analyzes your specific financial numbers to generate actionable advice on:
   * Section 115BAC election strategy.
