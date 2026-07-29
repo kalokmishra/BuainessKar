@@ -14,6 +14,10 @@ import {
   Loader2,
 } from 'lucide-react';
 import { AITaxAdvisorResponse, AITaxTip } from '../engine/types';
+import { generateFallbackTips } from '../engine/aiAdvisor';
+import { evaluateEligibility } from '../engine/eligibility';
+import { evaluateCashSurveillance } from '../engine/cashSurveillance';
+import { calculatePresumptiveTax } from '../engine/presumptiveTax';
 
 interface AITaxAdvisorTabProps {
   calculatorInput?: {
@@ -53,6 +57,53 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
     }
   }, [calculatorInput]);
 
+  const generateLocalAITips = (data: typeof inputData, question?: string): AITaxAdvisorResponse => {
+    const grossReceipts = Number(data.grossReceipts) || 0;
+    const cashReceipts = Number(data.cashReceipts) || 0;
+    const chapterVIADeductions = Number(data.chapterVIADeductions) || 0;
+    const tdsClaimed = Number(data.tdsClaimed) || 0;
+
+    const eligibility = evaluateEligibility({
+      entityType: data.entityType || 'INDIVIDUAL',
+      activityType: data.activityType || 'PROFESSION',
+      professionCategory: data.professionCategory,
+      businessCategory: data.businessCategory,
+      grossReceipts,
+      cashReceipts,
+    });
+
+    const cashSurveillance = evaluateCashSurveillance({
+      grossReceipts,
+      cashReceipts,
+    });
+
+    const presumptive = calculatePresumptiveTax({
+      workflowRoute: eligibility.workflowRoute,
+      grossReceipts,
+      cashReceipts,
+      chapterVIADeductions,
+    });
+
+    return generateFallbackTips({
+      entityType: data.entityType,
+      activityType: data.activityType,
+      professionCategory: data.professionCategory,
+      businessCategory: data.businessCategory,
+      grossReceipts,
+      cashReceipts,
+      cashPercentage: cashSurveillance.cashPercentage || 0,
+      deemedProfit: presumptive.deemedProfit || 0,
+      recommendedRegime: presumptive.recommendedRegime || 'NEW',
+      oldRegimeTax: presumptive.oldRegime?.totalTaxLiability || 0,
+      newRegimeTax: presumptive.newRegime?.totalTaxLiability || 0,
+      taxSavings: presumptive.taxSavings || 0,
+      chapterVIADeductions,
+      tdsClaimed,
+      workflowRoute: eligibility.workflowRoute,
+      customQuestion: question,
+    });
+  };
+
   const fetchAITips = async () => {
     setLoading(true);
     try {
@@ -66,10 +117,16 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
         const json = await res.json();
         if (json.status === 'success' && json.data) {
           setAdvisorData(json.data);
+          return;
         }
       }
+
+      const fallback = generateLocalAITips(inputData);
+      setAdvisorData(fallback);
     } catch (err) {
-      console.error('Failed to fetch AI tips:', err);
+      console.error('Failed to fetch AI tips from server, using local advisor engine:', err);
+      const fallback = generateLocalAITips(inputData);
+      setAdvisorData(fallback);
     } finally {
       setLoading(false);
     }
@@ -96,10 +153,16 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
         const json = await res.json();
         if (json.data && json.data.overallStrategy) {
           setFollowUpAnswer(json.data.overallStrategy);
+          return;
         }
       }
+
+      const fallback = generateLocalAITips(inputData, customQuestion.trim());
+      setFollowUpAnswer(fallback.overallStrategy);
     } catch (err) {
-      console.error('Follow-up error:', err);
+      console.error('Follow-up error, using local fallback:', err);
+      const fallback = generateLocalAITips(inputData, customQuestion.trim());
+      setFollowUpAnswer(fallback.overallStrategy);
     } finally {
       setAskingFollowUp(false);
     }

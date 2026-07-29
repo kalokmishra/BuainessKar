@@ -23,6 +23,7 @@ export interface AITaxAdvisorInput {
   chapterVIADeductions: number;
   tdsClaimed?: number;
   workflowRoute?: string;
+  customQuestion?: string;
 }
 
 const responseSchema = {
@@ -66,14 +67,34 @@ const responseSchema = {
   required: ['summary', 'overallStrategy', 'tips', 'actionChecklist'],
 };
 
-export async function generateAITaxTips(input: AITaxAdvisorInput): Promise<AITaxAdvisorResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
+export async function generateAITaxTips(rawInput: AITaxAdvisorInput): Promise<AITaxAdvisorResponse> {
+  const input: AITaxAdvisorInput = {
+    entityType: rawInput.entityType || 'INDIVIDUAL',
+    activityType: rawInput.activityType || 'PROFESSION',
+    professionCategory: rawInput.professionCategory || 'IT_SOFTWARE',
+    businessCategory: rawInput.businessCategory,
+    grossReceipts: Number(rawInput.grossReceipts) || 0,
+    cashReceipts: Number(rawInput.cashReceipts) || 0,
+    cashPercentage: Number(rawInput.cashPercentage) || 0,
+    deemedProfit: Number(rawInput.deemedProfit) || 0,
+    recommendedRegime: rawInput.recommendedRegime === 'OLD' ? 'OLD' : 'NEW',
+    oldRegimeTax: Number(rawInput.oldRegimeTax) || 0,
+    newRegimeTax: Number(rawInput.newRegimeTax) || 0,
+    taxSavings: Number(rawInput.taxSavings) || 0,
+    chapterVIADeductions: Number(rawInput.chapterVIADeductions) || 0,
+    tdsClaimed: Number(rawInput.tdsClaimed) || 0,
+    workflowRoute: rawInput.workflowRoute || 'SECTION_44ADA',
+    customQuestion: rawInput.customQuestion,
+  };
+
+  const apiKey = typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined;
 
   if (
     apiKey &&
     apiKey !== 'MY_GEMINI_API_KEY' &&
-    !process.env.VITEST &&
-    process.env.NODE_ENV !== 'test'
+    typeof process !== 'undefined' &&
+    !process.env?.VITEST &&
+    process.env?.NODE_ENV !== 'test'
   ) {
     try {
       const ai = new GoogleGenAI({
@@ -89,8 +110,8 @@ export async function generateAITaxTips(input: AITaxAdvisorInput): Promise<AITax
 You are an expert Chartered Accountant (CA) and Indian Tax Consultant specializing in Section 44AD and Section 44ADA presumptive tax compliance for FY 2026-27 (Assessment Year 2027-28).
 
 Analyze the taxpayer's profile and financial metrics:
-- Entity Type: ${input.entityType || 'INDIVIDUAL'}
-- Activity Type: ${input.activityType || 'PROFESSION'} (${input.professionCategory || input.businessCategory || 'GENERAL'})
+- Entity Type: ${input.entityType}
+- Activity Type: ${input.activityType} (${input.professionCategory || input.businessCategory || 'GENERAL'})
 - Gross Annual Receipts: ₹${input.grossReceipts.toLocaleString('en-IN')}
 - Cash Receipts: ₹${input.cashReceipts.toLocaleString('en-IN')} (${input.cashPercentage.toFixed(2)}% of turnover)
 - Calculated Deemed Profit: ₹${input.deemedProfit.toLocaleString('en-IN')}
@@ -100,7 +121,8 @@ Analyze the taxpayer's profile and financial metrics:
 - Net Tax Savings via Recommended Regime: ₹${input.taxSavings.toLocaleString('en-IN')}
 - Chapter VI-A Deductions Claimed: ₹${input.chapterVIADeductions.toLocaleString('en-IN')}
 - TDS Claimed under 26AS: ₹${(input.tdsClaimed || 0).toLocaleString('en-IN')}
-- Compliance Workflow Route: ${input.workflowRoute || 'SECTION_44ADA'}
+- Compliance Workflow Route: ${input.workflowRoute}
+${input.customQuestion ? `- Specific Follow-Up User Question: "${input.customQuestion}"` : ''}
 
 Provide 4 to 6 highly practical, legal, and actionable tax-saving strategies specifically tailored to this taxpayer.
 Consider:
@@ -109,6 +131,7 @@ Consider:
 3. Section 211(1)(b) single March 15 advance tax payment privilege for presumptive taxpayers.
 4. GST registration, LUT export filing for cross-border foreign client income (zero-rated export).
 5. 26AS / AIS reconciliation for TDS credits.
+${input.customQuestion ? '6. Specifically address the user question in the overallStrategy section.' : ''}
 `;
 
       const response = await ai.models.generateContent({
@@ -125,7 +148,9 @@ Consider:
 
       if (response.text) {
         const parsed = JSON.parse(response.text.trim()) as AITaxAdvisorResponse;
-        return parsed;
+        if (parsed && parsed.summary && parsed.tips) {
+          return parsed;
+        }
       }
     } catch (err) {
       console.error('Gemini API call error, falling back to rule engine advisor:', err);
@@ -136,8 +161,27 @@ Consider:
   return generateFallbackTips(input);
 }
 
-function generateFallbackTips(input: AITaxAdvisorInput): AITaxAdvisorResponse {
-  const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
+export function generateFallbackTips(rawInput: AITaxAdvisorInput): AITaxAdvisorResponse {
+  const input: AITaxAdvisorInput = {
+    entityType: rawInput.entityType || 'INDIVIDUAL',
+    activityType: rawInput.activityType || 'PROFESSION',
+    professionCategory: rawInput.professionCategory || 'IT_SOFTWARE',
+    businessCategory: rawInput.businessCategory,
+    grossReceipts: Number(rawInput.grossReceipts) || 0,
+    cashReceipts: Number(rawInput.cashReceipts) || 0,
+    cashPercentage: Number(rawInput.cashPercentage) || 0,
+    deemedProfit: Number(rawInput.deemedProfit) || 0,
+    recommendedRegime: rawInput.recommendedRegime === 'OLD' ? 'OLD' : 'NEW',
+    oldRegimeTax: Number(rawInput.oldRegimeTax) || 0,
+    newRegimeTax: Number(rawInput.newRegimeTax) || 0,
+    taxSavings: Number(rawInput.taxSavings) || 0,
+    chapterVIADeductions: Number(rawInput.chapterVIADeductions) || 0,
+    tdsClaimed: Number(rawInput.tdsClaimed) || 0,
+    workflowRoute: rawInput.workflowRoute || 'SECTION_44ADA',
+    customQuestion: rawInput.customQuestion,
+  };
+
+  const formatINR = (val: number) => `₹${(Number(val) || 0).toLocaleString('en-IN')}`;
   const tips: AITaxAdvisorResponse['tips'] = [];
   const actionChecklist: string[] = [];
 
@@ -210,9 +254,17 @@ function generateFallbackTips(input: AITaxAdvisorInput): AITaxAdvisorResponse {
   );
   actionChecklist.push('Generate and download ITR-4 JSON payload for filing on incometax.gov.in.');
 
+  const effectiveRate = input.grossReceipts > 0 ? ((input.newRegimeTax / input.grossReceipts) * 100).toFixed(1) : '0.0';
+
+  let strategyNarrative = `Your financial profile qualifies for Section 44ADA/44AD presumptive tax relief. By utilizing the ${input.recommendedRegime} regime and single March 15 advance tax payment privilege under Section 211(1)(b), you can minimize compliance overhead while keeping your effective tax rate at ${effectiveRate}%.`;
+
+  if (input.customQuestion) {
+    strategyNarrative += `\n\n📌 Regarding your query ("${input.customQuestion}"): As a presumptive taxpayer, all statutory deductions up to 50% (Sec 44ADA) or 92%/94% (Sec 44AD) are deemed already allowed. Maintain digital payment proofs for all gross receipts.`;
+  }
+
   return {
     summary: `Based on your turnover of ${formatINR(input.grossReceipts)} and deemed profit of ${formatINR(input.deemedProfit)}, the ${input.recommendedRegime} Tax Regime provides optimal savings of ${formatINR(input.taxSavings)}.`,
-    overallStrategy: `Your financial profile qualifies for Section 44ADA/44AD presumptive tax relief. By utilizing the ${input.recommendedRegime} regime and single March 15 advance tax payment privilege under Section 211(1)(b), you can minimize compliance overhead while keeping your effective tax rate at ${((input.newRegimeTax / input.grossReceipts) * 100).toFixed(1)}%.`,
+    overallStrategy: strategyNarrative,
     tips,
     actionChecklist,
   };
