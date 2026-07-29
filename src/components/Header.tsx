@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ShieldCheck,
   FileText,
   Calculator,
   AlertTriangle,
@@ -15,6 +14,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   activeTab: string;
@@ -47,20 +47,21 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/30 text-emerald-400">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="p-1 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
+              <Logo className="w-10 h-10" showText={false} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-bold text-lg text-slate-100 tracking-tight">
-                  Indian Tax Utility Engine
+                <h1 className="font-bold text-xl text-slate-100 tracking-tight flex items-center gap-1">
+                  <span>Business</span>
+                  <span className="text-emerald-400">कर</span>
                 </h1>
                 <span className="text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
                   FY {financialYear} (AY {assessmentYear})
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Section 44AD & 44ADA Rules-as-Code (RaC) Engine • Mobile-First MVP
+                Section 44AD & 44ADA Rules-as-Code (RaC) Engine • Presumptive Tax Utility
               </p>
             </div>
           </div>

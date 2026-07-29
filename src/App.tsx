@@ -115,7 +115,7 @@ function MainAppContent() {
             {schemaMeta.disclaimer}
           </p>
           <p className="text-[10px] text-slate-600">
-            Powered by Rules-as-Code (RaC) Engine • Section 44AD & Section 44ADA Income Tax Utility
+            Businessकर • Rules-as-Code (RaC) Engine • Section 44AD & Section 44ADA Income Tax Utility
           </p>
         </div>
       </footer>

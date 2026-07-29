@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck,
   Mail,
   Phone,
   Lock,
@@ -9,9 +8,9 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
-  FileText,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from './Logo';
 
 export const LoginModal: React.FC = () => {
   const { login, signup } = useAuth();
@@ -72,14 +71,15 @@ export const LoginModal: React.FC = () => {
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl text-white relative">
         {/* Header Branding */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="mx-auto flex justify-center">
+            <Logo className="w-16 h-16" showText={false} />
           </div>
-          <h2 className="text-xl font-bold text-slate-100">
-            {mode === 'LOGIN' ? 'Tax Pro Portal Login' : 'Create Tax Pro Account'}
+          <h2 className="text-2xl font-black text-slate-100 flex items-center justify-center gap-1">
+            <span>Business</span>
+            <span className="text-emerald-400">कर</span>
           </h2>
           <p className="text-xs text-slate-400">
-            Official Indian Presumptive Tax & Compliance Engine (FY 2026-27 / AY 2027-28)
+            {mode === 'LOGIN' ? 'Sign in to access Indian Presumptive Tax Engine' : 'Create your Businessकर Tax Pro Account'}
           </p>
         </div>
 

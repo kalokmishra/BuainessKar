@@ -1,6 +1,6 @@
-# Indian Tax Utility MVP - Core Engine & Mobile-First App (Section 44AD & Section 44ADA)
+# Businessकर - Indian Tax Utility Engine & Mobile-First App (Section 44AD & Section 44ADA)
 
-> **Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
+> **Businessकर: Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
 
 📖 **[Read the End-User & Prospective User Feature Guide (USER_GUIDE.md)](./USER_GUIDE.md)** for a complete overview of features, value drivers, and compliance benefits.
 

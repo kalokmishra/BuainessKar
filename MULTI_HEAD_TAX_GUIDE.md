@@ -1,10 +1,10 @@
-# Multi-Head Tax Provision & Statutory Calculation Guide (FY 2026-27 / AY 2027-28)
+# Businessकर - Multi-Head Tax Provision & Statutory Calculation Guide (FY 2026-27 / AY 2027-28)
 
 ## 📌 Executive Summary
 
 Many Indian freelancers and independent consultants operate with multi-source income. For example, a taxpayer might be employed full-time or part-time receiving a **Salary**, perform freelance consulting declared under **Section 44ADA or 44AD**, trade stocks or mutual funds generating **Short-Term/Long-Term Capital Gains**, and earn interest on savings deposits or dividends.
 
-This application provides complete provisions and computational engines to handle multi-head aggregate income under both the **New Tax Regime (Section 115BAC)** and the **Old Tax Regime**.
+**Businessकर** provides complete provisions and computational engines to handle multi-head aggregate income under both the **New Tax Regime (Section 115BAC)** and the **Old Tax Regime**.
 
 ---
 

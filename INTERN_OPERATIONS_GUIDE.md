@@ -1,7 +1,7 @@
 # Intern Operations & Troubleshooting Guide
-## Indian Presumptive Tax Engine & Utility
+## Businessकर - Indian Presumptive Tax Engine & Utility
 
-Welcome to the team! This operations guide is created specifically for interns, junior developers, and support engineers managing, testing, and maintaining the **Indian Presumptive Tax Engine (FY 2026-27 / AY 2027-28)**.
+Welcome to the team! This operations guide is created specifically for interns, junior developers, and support engineers managing, testing, and maintaining **Businessकर (FY 2026-27 / AY 2027-28)**.
 
 This document lives in the source code repository as a reference manual and is **not exposed in the end-user application interface**.
 
