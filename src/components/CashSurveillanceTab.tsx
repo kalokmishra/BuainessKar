@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ShieldAlert, CheckCircle2, Languages, ArrowUpRight } from 'lucide-react';
 import { evaluateCashSurveillance } from '../engine/cashSurveillance';
+import { useTaxData } from '../context/TaxDataContext';
 
 export const CashSurveillanceTab: React.FC = () => {
-  const [grossReceipts, setGrossReceipts] = useState<number>(6000000); // ₹60 Lakhs
-  const [cashReceipts, setCashReceipts] = useState<number>(285000); // ₹2.85 Lakhs (4.75% -> Tier 1)
+  const { taxData, updateTaxData } = useTaxData();
+
+  const [grossReceipts, setGrossReceipts] = useState<number>(taxData.grossReceipts);
+  const [cashReceipts, setCashReceipts] = useState<number>(taxData.cashReceipts);
+
+  useEffect(() => {
+    setGrossReceipts(taxData.grossReceipts);
+    setCashReceipts(taxData.cashReceipts);
+  }, [taxData]);
+
+  const handleGrossChange = (val: number) => {
+    setGrossReceipts(val);
+    updateTaxData({ grossReceipts: val });
+  };
+
+  const handleCashChange = (val: number) => {
+    setCashReceipts(val);
+    updateTaxData({ cashReceipts: val });
+  };
 
   const surveillance = evaluateCashSurveillance({ grossReceipts, cashReceipts });
   const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
@@ -42,7 +60,7 @@ export const CashSurveillanceTab: React.FC = () => {
             <input
               type="number"
               value={grossReceipts}
-              onChange={(e) => setGrossReceipts(Number(e.target.value))}
+              onChange={(e) => handleGrossChange(Number(e.target.value))}
               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
             />
             <span className="text-[11px] text-emerald-400 mt-1 block">
@@ -57,7 +75,7 @@ export const CashSurveillanceTab: React.FC = () => {
             <input
               type="number"
               value={cashReceipts}
-              onChange={(e) => setCashReceipts(Number(e.target.value))}
+              onChange={(e) => handleCashChange(Number(e.target.value))}
               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
             />
             <span className="text-[11px] text-amber-400 mt-1 block">

@@ -125,6 +125,9 @@ Below are common issues interns may encounter, along with step-by-step diagnosti
 | `src/engine/itr4Schema.ts` | ITR-4 JSON builder & validator | Verify field mappings & `validateITR4SchemaCompliance` |
 | `src/engine/comprehensiveTax.ts` | Multi-head salary & capital gains engine | Maintain standard deduction and capital gains special rates |
 | `src/context/AuthContext.tsx` | User authentication & sessions | Manage Email / Indian Mobile Number session persistence |
+| `src/context/TaxDataContext.tsx` | Shared tax financial state & onboarding context | Maintain zero-default profile state and demo data loader |
+| `src/components/GuidedOnboardingTour.tsx` | 4-step onboarding wizard modal | Maintain step navigation, input form validation & wizard steps |
+| `src/components/OnboardingPromptBanner.tsx` | Onboarding banner prompt | Displays welcome prompt with Zero Data vs Demo Data indicator |
 | `src/utils/pdfExporter.ts` | PDF Report Generator | Formats Section 44AD/44ADA calculation reports in jsPDF |
 | `src/components/CalculatorTab.tsx` | Main calculation screen | UI layout, input state, local storage & PDF/JSON export |
 | `src/components/ITR4MapperTab.tsx` | ITR-4 Sugam mapper & validator UI | Form section explorer, validation banner & JSON exporter |

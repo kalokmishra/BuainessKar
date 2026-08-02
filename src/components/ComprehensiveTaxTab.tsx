@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Briefcase,
   TrendingUp,
@@ -16,21 +16,40 @@ import {
 } from 'lucide-react';
 import { calculateComprehensiveTax } from '../engine/comprehensiveTax';
 import { ComprehensiveTaxInput, WorkflowRoute } from '../engine/types';
+import { useTaxData } from '../context/TaxDataContext';
 
 export const ComprehensiveTaxTab: React.FC = () => {
-  // Input State
-  const [grossSalary, setGrossSalary] = useState<number>(800000);
-  const [workflowRoute, setWorkflowRoute] = useState<WorkflowRoute>('SECTION_44ADA');
-  const [freelanceGrossReceipts, setFreelanceGrossReceipts] = useState<number>(1800000);
-  const [freelanceCashReceipts, setFreelanceCashReceipts] = useState<number>(50000);
+  const { taxData, updateTaxData } = useTaxData();
 
-  const [stcgEquity, setStcgEquity] = useState<number>(150000);
-  const [stcgOther, setStcgOther] = useState<number>(0);
-  const [ltcgEquity, setLtcgEquity] = useState<number>(250000);
-  const [ltcgOther, setLtcgOther] = useState<number>(100000);
+  // Input State initialized from taxData
+  const [grossSalary, setGrossSalary] = useState<number>(taxData.grossSalary);
+  const [workflowRoute, setWorkflowRoute] = useState<WorkflowRoute>(
+    taxData.activityType === 'BUSINESS' ? 'SECTION_44AD' : 'SECTION_44ADA'
+  );
+  const [freelanceGrossReceipts, setFreelanceGrossReceipts] = useState<number>(taxData.grossReceipts);
+  const [freelanceCashReceipts, setFreelanceCashReceipts] = useState<number>(taxData.cashReceipts);
 
-  const [otherIncome, setOtherIncome] = useState<number>(60000);
-  const [chapterVIADeductions, setChapterVIADeductions] = useState<number>(150000);
+  const [stcgEquity, setStcgEquity] = useState<number>(taxData.stcgEquity);
+  const [stcgOther, setStcgOther] = useState<number>(taxData.stcgOther);
+  const [ltcgEquity, setLtcgEquity] = useState<number>(taxData.ltcgEquity);
+  const [ltcgOther, setLtcgOther] = useState<number>(taxData.ltcgOther);
+
+  const [otherIncome, setOtherIncome] = useState<number>(taxData.otherIncome);
+  const [chapterVIADeductions, setChapterVIADeductions] = useState<number>(taxData.chapterVIADeductions);
+
+  // Sync state when global taxData updates
+  useEffect(() => {
+    setGrossSalary(taxData.grossSalary);
+    setWorkflowRoute(taxData.activityType === 'BUSINESS' ? 'SECTION_44AD' : 'SECTION_44ADA');
+    setFreelanceGrossReceipts(taxData.grossReceipts);
+    setFreelanceCashReceipts(taxData.cashReceipts);
+    setStcgEquity(taxData.stcgEquity);
+    setStcgOther(taxData.stcgOther);
+    setLtcgEquity(taxData.ltcgEquity);
+    setLtcgOther(taxData.ltcgOther);
+    setOtherIncome(taxData.otherIncome);
+    setChapterVIADeductions(taxData.chapterVIADeductions);
+  }, [taxData]);
 
   const inputPayload: ComprehensiveTaxInput = useMemo(
     () => ({

@@ -28,6 +28,7 @@ import {
   ProfessionCategory,
   BusinessCategory,
 } from '../engine/types';
+import { useTaxData } from '../context/TaxDataContext';
 import { generateTaxCalculationPdf } from '../utils/pdfExporter';
 import { generateITR4Json } from '../engine/itr4Schema';
 import { calculateAdvanceTax } from '../engine/advanceTax';
@@ -75,15 +76,43 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   evaluationData,
   onNavigateToAI,
 }) => {
-  const [entityType, setEntityType] = useState<EntityType>('INDIVIDUAL');
-  const [activityType, setActivityType] = useState<'PROFESSION' | 'BUSINESS'>('PROFESSION');
-  const [professionCategory, setProfessionCategory] = useState<ProfessionCategory>('IT_SOFTWARE');
-  const [businessCategory, setBusinessCategory] = useState<BusinessCategory>('RETAIL_TRADING');
-  const [grossReceipts, setGrossReceipts] = useState<number>(4800000); // ₹48 Lakhs default
-  const [cashReceipts, setCashReceipts] = useState<number>(120000); // ₹1.2 Lakhs default (2.5%)
-  const [declaredProfit, setDeclaredProfit] = useState<string>('');
-  const [otherIncome, setOtherIncome] = useState<number>(0);
-  const [chapterVIADeductions, setChapterVIADeductions] = useState<number>(150000);
+  const { taxData, updateTaxData } = useTaxData();
+
+  const [entityType, setEntityType] = useState<EntityType>(taxData.entityType);
+  const [activityType, setActivityType] = useState<'PROFESSION' | 'BUSINESS'>(taxData.activityType);
+  const [professionCategory, setProfessionCategory] = useState<ProfessionCategory>(taxData.professionCategory);
+  const [businessCategory, setBusinessCategory] = useState<BusinessCategory>(taxData.businessCategory);
+  const [grossReceipts, setGrossReceipts] = useState<number>(taxData.grossReceipts);
+  const [cashReceipts, setCashReceipts] = useState<number>(taxData.cashReceipts);
+  const [declaredProfit, setDeclaredProfit] = useState<string>(taxData.declaredProfit);
+  const [otherIncome, setOtherIncome] = useState<number>(taxData.otherIncome);
+  const [chapterVIADeductions, setChapterVIADeductions] = useState<number>(taxData.chapterVIADeductions);
+
+  // Keep local state in sync when global taxData updates
+  useEffect(() => {
+    setEntityType(taxData.entityType);
+    setActivityType(taxData.activityType);
+    setProfessionCategory(taxData.professionCategory);
+    setBusinessCategory(taxData.businessCategory);
+    setGrossReceipts(taxData.grossReceipts);
+    setCashReceipts(taxData.cashReceipts);
+    setDeclaredProfit(taxData.declaredProfit);
+    setOtherIncome(taxData.otherIncome);
+    setChapterVIADeductions(taxData.chapterVIADeductions);
+
+    // Auto evaluate with active taxData
+    onEvaluate({
+      entityType: taxData.entityType,
+      activityType: taxData.activityType,
+      professionCategory: taxData.professionCategory,
+      businessCategory: taxData.businessCategory,
+      grossReceipts: Number(taxData.grossReceipts) || 0,
+      cashReceipts: Number(taxData.cashReceipts) || 0,
+      declaredProfit: taxData.declaredProfit ? Number(taxData.declaredProfit) : undefined,
+      otherIncome: Number(taxData.otherIncome) || 0,
+      chapterVIADeductions: Number(taxData.chapterVIADeductions) || 0,
+    });
+  }, [taxData]);
 
   // Local storage state
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>(() => {
@@ -100,6 +129,52 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
   const [scenarioTitle, setScenarioTitle] = useState<string>('');
   const [notificationMsg, setNotificationMsg] = useState<string>('');
+
+  // Helper to update both local state and global context
+  const handleEntityTypeChange = (val: EntityType) => {
+    setEntityType(val);
+    updateTaxData({ entityType: val });
+  };
+
+  const handleActivityTypeChange = (val: 'PROFESSION' | 'BUSINESS') => {
+    setActivityType(val);
+    updateTaxData({ activityType: val });
+  };
+
+  const handleProfessionCategoryChange = (val: ProfessionCategory) => {
+    setProfessionCategory(val);
+    updateTaxData({ professionCategory: val });
+  };
+
+  const handleBusinessCategoryChange = (val: BusinessCategory) => {
+    setBusinessCategory(val);
+    updateTaxData({ businessCategory: val });
+  };
+
+  const handleGrossReceiptsChange = (val: number) => {
+    setGrossReceipts(val);
+    updateTaxData({ grossReceipts: val });
+  };
+
+  const handleCashReceiptsChange = (val: number) => {
+    setCashReceipts(val);
+    updateTaxData({ cashReceipts: val });
+  };
+
+  const handleDeclaredProfitChange = (val: string) => {
+    setDeclaredProfit(val);
+    updateTaxData({ declaredProfit: val });
+  };
+
+  const handleOtherIncomeChange = (val: number) => {
+    setOtherIncome(val);
+    updateTaxData({ otherIncome: val });
+  };
+
+  const handleChapterVIAChange = (val: number) => {
+    setChapterVIADeductions(val);
+    updateTaxData({ chapterVIADeductions: val });
+  };
 
   // Persist to localStorage whenever savedCalculations changes
   useEffect(() => {

@@ -113,6 +113,13 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Validates Email ID and Indian 10-digit mobile phone numbers with static password checks on login and signup.
   - Displays user profile badge in the global Header with user name, email/phone indicator, and logout action.
 
+### Module 10: `TaxDataContext.tsx`, `GuidedOnboardingTour.tsx` & `OnboardingPromptBanner.tsx`
+- **Responsibilities:**
+  - Manages application-wide shared financial state (`TaxDataPayload`), initializing first-time users with a clean 0-value tax profile.
+  - Features an interactive 4-step Guided Onboarding Wizard (`GuidedOnboardingTour`) allowing structured step-by-step entry of entity type, gross receipts, salary, capital gains, and deductions.
+  - Provides a top prompt banner (`OnboardingPromptBanner`) and header action buttons to launch the onboarding tour or trigger 1-click sample demo data loading (`loadDemoData`).
+  - Automatically synchronizes financial state changes in real time across all application tabs (`CalculatorTab`, `ComprehensiveTaxTab`, `CashSurveillanceTab`, `AdvanceTaxTab`, `ExportInvoiceTab`).
+
 ### Utility 1: `pdfExporter.ts`
 - **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
 - **Responsibilities:**
@@ -129,15 +136,17 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (22 tests across 7 test suites):
+Test coverage includes (29 tests across 9 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).
 4. Section 87A rebate calculations under New Regime.
 5. Section 211 single March 15 advance tax installment privilege.
 6. Cross-border LUT export invoice statutory disclaimer generation.
-7. Official ITR-4 Sugam JSON formatting.
+7. Official ITR-4 Sugam JSON formatting and schema validation.
 8. Gemini AI Advisor response formatting & rule-based offline fallback handling.
+9. Multi-head aggregate tax computation across Salary, Presumptive Business/Profession, STCG Sec 111A, LTCG Sec 112A/112, and basic exemption set-off rules.
+10. User authentication, signup/login validation, and session persistence.
 
 ---
 

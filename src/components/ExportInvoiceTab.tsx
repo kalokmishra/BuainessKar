@@ -1,18 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, ShieldCheck, Copy, Check, Info, Globe } from 'lucide-react';
 import { generateInvoiceExportMetadata } from '../engine/invoiceExporter';
+import { useTaxData } from '../context/TaxDataContext';
 
 export const ExportInvoiceTab: React.FC = () => {
+  const { taxData, updateTaxData } = useTaxData();
+
   const [invoiceNumber, setInvoiceNumber] = useState<string>('INV-2026-008');
   const [invoiceDate, setInvoiceDate] = useState<string>('2026-06-15');
   const [recipientName, setRecipientName] = useState<string>('Global Software Corp LLC');
-  const [isExport, setIsExport] = useState<boolean>(true);
-  const [lutNumber, setLutNumber] = useState<string>('AD270326001928X');
+  const [isExport, setIsExport] = useState<boolean>(taxData.isExport);
+  const [lutNumber, setLutNumber] = useState<string>(taxData.lutNumber || 'AD270326001928X');
   const [currency, setCurrency] = useState<string>('USD');
   const [exchangeRate, setExchangeRate] = useState<number>(86.5);
-  const [itemAmountUSD, setItemAmountUSD] = useState<number>(3500); // $3,500
+  const [itemAmountUSD, setItemAmountUSD] = useState<number>(
+    taxData.grossReceipts > 0 ? Math.round((taxData.grossReceipts / 86.5) * 100) / 100 : 0
+  );
   const [sacCode, setSacCode] = useState<string>('998314');
   const [copied, setCopied] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsExport(taxData.isExport);
+    if (taxData.lutNumber) {
+      setLutNumber(taxData.lutNumber);
+    }
+    if (taxData.grossReceipts > 0) {
+      setItemAmountUSD(Math.round((taxData.grossReceipts / 86.5) * 100) / 100);
+    } else {
+      setItemAmountUSD(0);
+    }
+  }, [taxData]);
 
   const metadata = generateInvoiceExportMetadata({
     invoiceNumber,
