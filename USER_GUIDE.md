@@ -34,8 +34,9 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
   2. *Gross Turnover & Cash Receipts*: Enter exact gross receipts and digital vs cash breakdown.
   3. *Multi-Head Income & Capital Gains*: Input gross salary, STCG Equity (Sec 111A 20%), LTCG Equity (Sec 112A 12.5%), and interest income.
   4. *Deductions & Advance Tax*: Specify Chapter VI-A deductions (Sec 80C/80D) and quarterly advance tax payments made.
-* **1-Click Reset to 0**: Click **"Reset to 0"** in the top header or banner (featuring a quick confirmation modal) to clear all income, deduction, and advance tax fields back to clean zero values anytime.
-* **1-Click Demo Data Toggle**: Click **"Demo Data"** anytime in the top header or banner to instantly populate realistic sample numbers (₹48 Lakhs receipts) to explore calculations.
+* **In-Wizard Reset & Demo Data Tools**:
+  * **In-Wizard Demo Data**: Click **"Load Demo Data"** directly inside the Guided Setup Tour modal (available in both header and bottom toolbar) to instantly populate realistic sample figures (₹48 Lakhs receipts, salary, capital gains) so you can review and customize entries step-by-step.
+  * **In-Wizard Reset to 0**: Click **"Reset All to 0"** inside the Guided Setup Tour wizard (featuring a clear confirmation modal) to clear all income, deduction, and advance tax fields back to clean zero values across the tour and application anytime without cluttering main screen headers.
 * **Real-Time Cross-Tab Synchronization**: Updating tax data in the wizard or any tab automatically reflects across all calculator views simultaneously.
 
 ---
@@ -43,8 +44,11 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 ### 2. 🔐 Secure User Authentication & Session Management
 * **Flexible Signup**: Create an account in seconds using either your **Email Address** (e.g. `name@domain.com`) or **10-digit Indian Mobile Number** (`9876543210`) with a static password.
 * **Instant Session Gatekeeper**: Ensures your sensitive financial inputs are private and only accessible during your authenticated session.
-* **Header Profile Badge**: Displays your registered name, identifier type, and a quick 1-click **Logout** button on every page.
-* **Pre-Populated Demo Accounts**: Test-drive the app instantly with built-in demo credentials (`rahul@businesskar.in` / `password123` or `9876543210` / `password123`).
+* **Header Profile Dropdown**: Clicking your profile avatar/badge in the top right opens an interactive dropdown menu with your profile information, an in-app **Reset Password** option, and a 1-click **Logout** action.
+* **In-App Password Reset**: Logged-in users can select **"Reset Password"** from the top-right profile dropdown menu to update their account password anytime by entering their current password and setting a new one.
+* **Forgot Password Admin Help**: If a user forgets their password on the login screen, clicking **"Forgot password?"** displays an instant instruction advising them to contact the admin at `contactadmin@businesskar.com`.
+* **Credential-Based Login & Quick Demo Buttons**: Unauthenticated or logged-out visitors must provide valid credentials to log in. Includes 1-click Quick Demo credential buttons (`rahul@taxpro.in` / `password123` or `9876543210` / `password123`) directly on the sign-in modal for instant test-driving.
+* **Automatic Top Scroll Navigation**: Switching between navigation tabs automatically returns the window scroll position directly to the top of the page so you can immediately view header metrics and primary content without manual scrolling.
 
 ---
 
