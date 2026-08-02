@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, ShieldCheck, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { calculateAdvanceTax } from '../engine/advanceTax';
 import { AdvanceTaxPayment } from '../engine/types';
+import { useTaxData } from '../context/TaxDataContext';
 
 export const AdvanceTaxTab: React.FC = () => {
-  const [taxLiability, setTaxLiability] = useState<number>(180000); // ₹1.8 Lakhs
-  const [tdsCredit, setTdsCredit] = useState<number>(30000); // ₹30,000 TDS
-  const [isPresumptive, setIsPresumptive] = useState<boolean>(true); // Sec 211 privilege
+  const { taxData, updateTaxData } = useTaxData();
 
-  const [q1Paid, setQ1Paid] = useState<number>(0);
-  const [q2Paid, setQ2Paid] = useState<number>(0);
-  const [q3Paid, setQ3Paid] = useState<number>(0);
-  const [q4Paid, setQ4Paid] = useState<number>(150000); // Paid 150k in Q4
+  const [taxLiability, setTaxLiability] = useState<number>(
+    taxData.grossReceipts > 0 ? Math.round(taxData.grossReceipts * 0.08) : 0
+  );
+  const [tdsCredit, setTdsCredit] = useState<number>(taxData.tdsClaimed);
+  const [isPresumptive, setIsPresumptive] = useState<boolean>(true);
+
+  const [q1Paid, setQ1Paid] = useState<number>(taxData.q1Paid);
+  const [q2Paid, setQ2Paid] = useState<number>(taxData.q2Paid);
+  const [q3Paid, setQ3Paid] = useState<number>(taxData.q3Paid);
+  const [q4Paid, setQ4Paid] = useState<number>(taxData.q4Paid);
+
+  useEffect(() => {
+    if (taxData.grossReceipts > 0) {
+      setTaxLiability(Math.round(taxData.grossReceipts * 0.08));
+    } else {
+      setTaxLiability(0);
+    }
+    setTdsCredit(taxData.tdsClaimed);
+    setQ1Paid(taxData.q1Paid);
+    setQ2Paid(taxData.q2Paid);
+    setQ3Paid(taxData.q3Paid);
+    setQ4Paid(taxData.q4Paid);
+  }, [taxData]);
 
   const paymentsMade: AdvanceTaxPayment[] = [
     { quarter: 'Q1', paidAmount: q1Paid },

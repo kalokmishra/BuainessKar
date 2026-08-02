@@ -26,7 +26,19 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ## 🔍 Module-by-Module Feature Breakdown
 
-### 1. 🔐 Secure User Authentication & Session Management
+### 1. 🧙‍♂️ Guided Onboarding Setup Wizard & Clean Zero-Default Profile
+* **Clean 0-Value Starting Profile**: Starts with 0 values so users enter their real tax data without confusion from arbitrary pre-filled defaults.
+* **Interactive 4-Step Setup Wizard**:
+  1. *Taxpayer Classification*: Select Individual vs HUF vs Firm, and Professional vs Business activity categories.
+  2. *Gross Turnover & Cash Receipts*: Enter exact gross receipts and digital vs cash breakdown.
+  3. *Multi-Head Income & Capital Gains*: Input gross salary, STCG Equity (Sec 111A 20%), LTCG Equity (Sec 112A 12.5%), and interest income.
+  4. *Deductions & Advance Tax*: Specify Chapter VI-A deductions (Sec 80C/80D) and quarterly advance tax payments made.
+* **1-Click Demo Data Toggle**: Click **"Load Demo Data"** anytime in the top header or banner to instantly populate realistic sample numbers (₹48 Lakhs receipts) to explore calculations.
+* **Real-Time Cross-Tab Synchronization**: Updating tax data in the wizard or any tab automatically reflects across all calculator views simultaneously.
+
+---
+
+### 2. 🔐 Secure User Authentication & Session Management
 * **Flexible Signup**: Create an account in seconds using either your **Email Address** (e.g. `name@domain.com`) or **10-digit Indian Mobile Number** (`9876543210`) with a static password.
 * **Instant Session Gatekeeper**: Ensures your sensitive financial inputs are private and only accessible during your authenticated session.
 * **Header Profile Badge**: Displays your registered name, identifier type, and a quick 1-click **Logout** button on every page.

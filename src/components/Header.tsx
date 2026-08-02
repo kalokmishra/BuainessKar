@@ -12,8 +12,11 @@ import {
   LogOut,
   Mail,
   Phone,
+  Play,
+  Database,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTaxData } from '../context/TaxDataContext';
 import { Logo } from './Logo';
 
 interface HeaderProps {
@@ -30,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   assessmentYear,
 }) => {
   const { currentUser, logout } = useAuth();
+  const { openTour, loadDemoData } = useTaxData();
 
   const tabs = [
     { id: 'calculator', label: 'Engine Calculator', icon: Calculator },
@@ -69,38 +73,58 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right: Shortened User Profile Badge */}
-          {currentUser && (
-            <div className="flex items-center gap-1.5 bg-slate-950/90 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
-              <div
-                className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0"
-                title={currentUser.name}
-              >
-                <UserIcon className="w-3.5 h-3.5" />
+          {/* Right: Actions & User Profile Badge */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={openTour}
+              className="flex items-center gap-1 bg-emerald-600/90 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg border border-emerald-500/50 text-xs font-bold transition-all shadow-sm cursor-pointer"
+              title="Launch Guided Setup Wizard"
+            >
+              <Play className="w-3 h-3 fill-current" />
+              <span className="hidden sm:inline">Guided Setup</span>
+            </button>
+
+            <button
+              onClick={loadDemoData}
+              className="flex items-center gap-1 bg-slate-950 hover:bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-800 text-xs font-medium transition-all cursor-pointer"
+              title="Load Sample Demo Data"
+            >
+              <Database className="w-3 h-3 text-amber-400" />
+              <span className="hidden md:inline">Demo Data</span>
+            </button>
+
+            {currentUser && (
+              <div className="flex items-center gap-1.5 bg-slate-950/90 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
+                <div
+                  className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0"
+                  title={currentUser.name}
+                >
+                  <UserIcon className="w-3.5 h-3.5" />
+                </div>
+                <div className="hidden lg:block text-left pr-1">
+                  <span className="text-xs font-bold text-slate-200 block leading-none truncate max-w-[110px]">
+                    {currentUser.name}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono flex items-center gap-0.5 mt-0.5">
+                    {currentUser.type === 'email' ? (
+                      <Mail className="w-2.5 h-2.5 text-slate-400" />
+                    ) : (
+                      <Phone className="w-2.5 h-2.5 text-slate-400" />
+                    )}
+                    <span className="truncate max-w-[90px]">{currentUser.identifier}</span>
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  title="Sign Out"
+                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 p-1.5 sm:px-2 sm:py-1 rounded-md border border-slate-800 transition-colors font-medium ml-0.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline text-[11px]">Logout</span>
+                </button>
               </div>
-              <div className="hidden sm:block text-left pr-1">
-                <span className="text-xs font-bold text-slate-200 block leading-none truncate max-w-[110px]">
-                  {currentUser.name}
-                </span>
-                <span className="text-[9px] text-slate-400 font-mono flex items-center gap-0.5 mt-0.5">
-                  {currentUser.type === 'email' ? (
-                    <Mail className="w-2.5 h-2.5 text-slate-400" />
-                  ) : (
-                    <Phone className="w-2.5 h-2.5 text-slate-400" />
-                  )}
-                  <span className="truncate max-w-[90px]">{currentUser.identifier}</span>
-                </span>
-              </div>
-              <button
-                onClick={logout}
-                title="Sign Out"
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 p-1.5 sm:px-2 sm:py-1 rounded-md border border-slate-800 transition-colors font-medium ml-0.5"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden md:inline text-[11px]">Logout</span>
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Navigation Tabs */}
