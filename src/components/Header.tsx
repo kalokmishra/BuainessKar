@@ -16,11 +16,13 @@ import {
   HelpCircle,
   Key,
   ChevronDown,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTaxData } from '../context/TaxDataContext';
 import { Logo } from './Logo';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import { TaxInfoDrawer } from './TaxInfoDrawer';
 
 interface HeaderProps {
   activeTab: string;
@@ -39,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { openTour } = useTaxData();
   const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
+  const [isInfoDrawerOpen, setIsInfoDrawerOpen] = useState<boolean>(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown when clicking outside
@@ -62,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'advancetax', label: 'Advance Tax & 234C', icon: Calendar },
     { id: 'invoice', label: 'GST & LUT Export', icon: FileSpreadsheet },
     { id: 'itr4', label: 'ITR-4 JSON Schema', icon: FileText },
-    { id: 'rac', label: 'Rules-as-Code Payload', icon: Code2 },
+    { id: 'rac', label: 'Tax Rules & Config', icon: Code2 },
   ];
 
   return (
@@ -87,13 +90,23 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                Section 44AD & 44ADA Presumptive Tax Utility
+                Income Tax & Presumptive Tax Calculator for Freelancers & Small Businesses
               </p>
             </div>
           </div>
 
           {/* Right: Actions & User Profile Badge */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end">
+            {/* Tax Glossary Button */}
+            <button
+              onClick={() => setIsInfoDrawerOpen(true)}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 rounded-lg transition-all cursor-pointer shrink-0 flex items-center gap-1.5 text-xs font-semibold shadow-sm"
+              title="Open Tax Terms Glossary & Plain-English Definitions"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Tax Glossary</span>
+            </button>
+
             {/* Small Tour Icon Launcher */}
             <button
               onClick={openTour}
@@ -195,6 +208,12 @@ export const Header: React.FC<HeaderProps> = ({
         <ChangePasswordModal
           isOpen={showChangePasswordModal}
           onClose={() => setShowChangePasswordModal(false)}
+        />
+
+        {/* Tax Info & Glossary Drawer */}
+        <TaxInfoDrawer
+          isOpen={isInfoDrawerOpen}
+          onClose={() => setIsInfoDrawerOpen(false)}
         />
 
         {/* Navigation Tabs */}

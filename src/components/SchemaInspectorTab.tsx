@@ -41,10 +41,10 @@ export const SchemaInspectorTab: React.FC = () => {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-100">
-              Rules-as-Code (RaC) Schema Payload Inspector
+              Tax Rates & Rules Configuration (JSON Schema)
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              All tax parameters (turnover limits ₹50L/₹75L/₹2Cr/₹3Cr, slab brackets, cash surveillance caps 5%, SAC codes, and Advance tax schedules) are parsed dynamically from this version-controlled JSON schema payload.
+              All tax parameters (turnover limits ₹50L/₹75L/₹2Cr/₹3Cr, tax slab brackets, cash surveillance caps 5%, SAC codes, and Advance Tax schedules) are parsed dynamically from this customizable tax rules schema payload.
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export const SchemaInspectorTab: React.FC = () => {
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
         <div className="flex justify-between items-center border-b border-slate-800 pb-3">
           <span className="text-xs font-bold text-slate-200">
-            Active Schema Payload: taxSchema.json
+            Active Tax Rules Config: taxSchema.json
           </span>
 
           <div className="flex gap-2">

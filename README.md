@@ -60,6 +60,7 @@
     - Gatekeeps app access so only authenticated users can access tax calculation features.
     - Supports user signup and login via Email ID or 10-digit Indian Mobile Number with static password verification and localStorage persistence.
     - Features top-right user profile dropdown menu (with Reset Password modal trigger and Logout), "Forgot password?" admin contact notice (`contactadmin@businesskar.com`) on the login screen, and automatic window scroll-to-top on tab navigation.
+    - Includes interactive hover-based **Field Tooltips** (`/src/components/FieldTooltip.tsx`) across all calculator inputs and a slide-out **Tax Glossary Info Drawer** (`/src/components/TaxInfoDrawer.tsx`) offering plain-English definitions and section references for non-financial users.
 
 ---
 
@@ -80,7 +81,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 29 automated unit tests across 9 test suites using Vitest covering all core engine edge cases.
+Runs 31 automated unit tests across 9 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -121,8 +122,11 @@ npm start
 │   ├── utils/
 │   │   └── pdfExporter.ts        # PDF Report Exporter (jsPDF engine)
 │   ├── components/
-│   │   ├── Header.tsx             # Navigation header & User Profile badge with Guided Setup CTA
+│   │   ├── Header.tsx             # Navigation header & User Profile badge with Tax Glossary launcher
 │   │   ├── LoginModal.tsx         # User authentication modal (Email / Mobile Number)
+│   │   ├── ChangePasswordModal.tsx# Reset password modal
+│   │   ├── FieldTooltip.tsx       # Interactive hover-based tax rule tooltips
+│   │   ├── TaxInfoDrawer.tsx      # Slide-out Tax Terms & Glossary Info Drawer
 │   │   ├── GuidedOnboardingTour.tsx# Interactive 4-step onboarding setup wizard modal
 │   │   ├── OnboardingPromptBanner.tsx# Top banner prompt with Zero Data vs Demo Data indicator
 │   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator with Local Storage & PDF export
@@ -132,7 +136,7 @@ npm start
 │   │   ├── ExportInvoiceTab.tsx   # Cross-border export invoice generator
 │   │   ├── ITR4MapperTab.tsx      # Official ITR-4 Sugam JSON mapper & live editor
 │   │   ├── AIAdvisorTab.tsx       # AI Tax Advisor interface
-│   │   └── SchemaInspectorTab.tsx # RaC JSON Schema Inspector & live updater
+│   │   └── SchemaInspectorTab.tsx # Tax Rates & Rules Config (JSON Schema Inspector & live updater)
 │   ├── App.tsx                    # Main React application
 │   ├── main.tsx                   # React DOM entrypoint
 │   └── index.css                  # Tailwind CSS styling

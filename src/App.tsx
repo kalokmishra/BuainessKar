@@ -125,7 +125,7 @@ function MainAppContent() {
             {schemaMeta.disclaimer}
           </p>
           <p className="text-[10px] text-slate-600">
-            Businessकर • Rules-as-Code (RaC) Engine • Section 44AD & Section 44ADA Income Tax Utility
+            Businessकर • Income Tax & Presumptive Tax Calculator • Section 44AD & Section 44ADA
           </p>
         </div>
       </footer>

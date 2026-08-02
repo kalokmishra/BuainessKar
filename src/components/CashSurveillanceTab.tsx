@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ShieldAlert, CheckCircle2, Languages, ArrowUpRight } from 'lucide-react';
 import { evaluateCashSurveillance } from '../engine/cashSurveillance';
 import { useTaxData } from '../context/TaxDataContext';
+import { FieldTooltip } from './FieldTooltip';
 
 export const CashSurveillanceTab: React.FC = () => {
   const { taxData, updateTaxData } = useTaxData();
@@ -54,8 +55,13 @@ export const CashSurveillanceTab: React.FC = () => {
           </h3>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Gross Receipts (Total Turnover)
+            <label className="text-xs font-medium text-slate-300 mb-1 flex items-center">
+              <span>Gross Receipts (Total Turnover)</span>
+              <FieldTooltip
+                section="Turnover Thresholds"
+                title="Annual Gross Turnover"
+                rule="Total gross business turnover or professional fees earned during FY 2026-27. Used as the base denominator for evaluating the statutory 5% cash ratio."
+              />
             </label>
             <input
               type="number"
@@ -69,8 +75,13 @@ export const CashSurveillanceTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Cash Receipts Portion (₹)
+            <label className="text-xs font-medium text-slate-300 mb-1 flex items-center">
+              <span>Cash Receipts Portion (₹)</span>
+              <FieldTooltip
+                section="Proviso to Sec 44AD/44ADA"
+                title="5% Cash Cap Rule"
+                rule="Receipts received in physical currency or non-account payee cheques. Exceeding 5% of gross turnover forfeits extended turnover limits (restricting limits back to ₹2Cr for 44AD and ₹50L for 44ADA)."
+              />
             </label>
             <input
               type="number"

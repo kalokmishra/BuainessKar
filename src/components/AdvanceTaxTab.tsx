@@ -3,6 +3,7 @@ import { Calendar, ShieldCheck, CheckCircle2, AlertTriangle, Info } from 'lucide
 import { calculateAdvanceTax } from '../engine/advanceTax';
 import { AdvanceTaxPayment } from '../engine/types';
 import { useTaxData } from '../context/TaxDataContext';
+import { FieldTooltip } from './FieldTooltip';
 
 export const AdvanceTaxTab: React.FC = () => {
   const { taxData, updateTaxData } = useTaxData();
@@ -74,8 +75,13 @@ export const AdvanceTaxTab: React.FC = () => {
           </h3>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Estimated Total Annual Tax Liability (₹)
+            <label className="text-xs font-medium text-slate-300 mb-1 flex items-center">
+              <span>Estimated Total Annual Tax Liability (₹)</span>
+              <FieldTooltip
+                section="Sec 208 Threshold"
+                title="Advance Tax Liability Threshold"
+                rule="If net tax liability (after TDS) exceeds ₹10,000 for the financial year, advance tax payment in quarterly installments is mandatory under Section 208."
+              />
             </label>
             <input
               type="number"
@@ -86,8 +92,13 @@ export const AdvanceTaxTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              TDS / TCS Credits Claimed (₹)
+            <label className="text-xs font-medium text-slate-300 mb-1 flex items-center">
+              <span>TDS / TCS Credits Claimed (₹)</span>
+              <FieldTooltip
+                section="Sec 199 TDS Credit"
+                title="Withholding Tax Deductions"
+                rule="Tax deducted at source (TDS under 194J, 194C, 194IA) or collected at source (TCS) deducted by clients reduces your advance tax obligation."
+              />
             </label>
             <input
               type="number"
@@ -108,6 +119,11 @@ export const AdvanceTaxTab: React.FC = () => {
               <span className="font-semibold text-emerald-400">
                 Presumptive Taxpayer (Sec 44AD / 44ADA)
               </span>
+              <FieldTooltip
+                section="Sec 211(1)(b) Privilege"
+                title="Single March 15 Installment Benefit"
+                rule="Taxpayers opting for Section 44AD or 44ADA presumptive taxation are exempt from Q1 (15%), Q2 (45%), and Q3 (75%) advance tax deadlines. They are required to pay 100% of their advance tax in a single installment by March 15 without attracting Sec 234C interest."
+              />
             </label>
             <p className="text-[11px] text-slate-400 mt-1">
               Enables Section 211(1)(b) single March 15 payment privilege (no Q1-Q3 penalty).

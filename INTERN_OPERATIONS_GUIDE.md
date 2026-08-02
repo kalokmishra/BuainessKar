@@ -26,7 +26,7 @@ The application is built as a full-stack, Rules-as-Code (RaC) web app:
 ├── src/context/                   <-- AuthContext user session management
 ├── src/components/                <-- React UI components (Calculator, Comprehensive Tax, ITR-4 Mapper, etc.)
 ├── server.ts                      <-- Express backend & Vite middleware server (Port 3000)
-└── tests/                         <-- Vitest unit test suite (29 unit tests across 9 test suites)
+└── tests/                         <-- Vitest unit test suite (31 unit tests across 9 test suites)
 ```
 
 ---
@@ -125,9 +125,11 @@ Below are common issues interns may encounter, along with step-by-step diagnosti
 | `src/engine/itr4Schema.ts` | ITR-4 JSON builder & validator | Verify field mappings & `validateITR4SchemaCompliance` |
 | `src/engine/comprehensiveTax.ts` | Multi-head salary & capital gains engine | Maintain standard deduction and capital gains special rates |
 | `src/context/AuthContext.tsx` | User authentication & sessions | Manage Email / Mobile session persistence and `changePassword` logic |
-| `src/components/Header.tsx` | Top Navigation Header | Top profile dropdown (Reset Password & Logout) and auto-scroll behavior |
+| `src/components/Header.tsx` | Top Navigation Header | Top profile dropdown (Reset Password & Logout), Tax Glossary launcher, and auto-scroll behavior |
 | `src/components/LoginModal.tsx` | Sign In / Sign Up modal | Maintain login credentials form & "Forgot password?" admin notice |
 | `src/components/ChangePasswordModal.tsx` | Reset password modal | Maintain current password verification and new password fields |
+| `src/components/FieldTooltip.tsx` | Hover-based input tooltips | Interactive tooltips rendering statutory tax rules on input labels |
+| `src/components/TaxInfoDrawer.tsx` | Slide-out Tax Terms & Glossary Drawer | Plain-English definitions, search filter, and real-world tax examples |
 | `src/context/TaxDataContext.tsx` | Shared tax financial state & onboarding context | Maintain zero-default profile state, ZERO_TAX_DATA, and DEMO_TAX_DATA definitions |
 | `src/components/GuidedOnboardingTour.tsx` | 4-step onboarding wizard modal | Maintain step navigation, input form validation, in-wizard Load Demo Data & Reset All tools |
 | `src/components/OnboardingPromptBanner.tsx` | Onboarding banner prompt | Displays welcome prompt with Zero Data vs Demo Data indicator |

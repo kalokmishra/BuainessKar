@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { generateITR4Json, validateITR4SchemaCompliance } from '../engine/itr4Schema';
 import { PresumptiveTaxResult, AdvanceTaxResult } from '../engine/types';
+import { FieldTooltip } from './FieldTooltip';
 
 interface ITR4MapperTabProps {
   presumptiveData?: PresumptiveTaxResult;
@@ -486,7 +487,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
 
             {/* PAN */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Permanent Account Number (PAN)</label>
+              <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                <span>Permanent Account Number (PAN)</span>
+                <FieldTooltip
+                  section="PersonalInfo"
+                  title="Assessee PAN"
+                  rule="10-character alphanumeric unique taxpayer identifier required for statutory ITR-4 filing."
+                />
+              </label>
               <input
                 type="text"
                 value={pan}
@@ -498,7 +506,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
 
             {/* Full Name */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Full Legal Name</label>
+              <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                <span>Full Legal Name</span>
+                <FieldTooltip
+                  section="PersonalInfo"
+                  title="Taxpayer Name"
+                  rule="Legal name as registered on the Income Tax Department e-filing portal / PAN database."
+                />
+              </label>
               <input
                 type="text"
                 value={fullName}
@@ -510,7 +525,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
             {/* Business Code & Trade Name */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">Nature Code</label>
+                <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                  <span>Nature Code</span>
+                  <FieldTooltip
+                    section="BusinessDetails"
+                    title="Business Activity Code"
+                    rule="Official CBDT activity code (e.g., 09028 for Software Consultancy, 09025 for Legal, 09021 for Medical)."
+                  />
+                </label>
                 <input
                   type="text"
                   value={businessCode}
@@ -520,7 +542,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">Trade Name</label>
+                <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                  <span>Trade Name</span>
+                  <FieldTooltip
+                    section="BusinessDetails"
+                    title="Proprietorship Name"
+                    rule="Name under which the professional service or business is operated."
+                  />
+                </label>
                 <input
                   type="text"
                   value={tradeName}
@@ -533,7 +562,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
 
             {/* Gross Receipts & TDS */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Gross Professional Receipts (₹)</label>
+              <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                <span>Gross Professional Receipts (₹)</span>
+                <FieldTooltip
+                  section="IncomeDeductions"
+                  title="Total Presumptive Revenue"
+                  rule="Gross professional revenue to be declared under Schedule BP in ITR-4 Sugam."
+                />
+              </label>
               <input
                 type="number"
                 value={grossReceipts}
@@ -543,7 +579,14 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
             </div>
 
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">TDS Claimed under 26AS (₹)</label>
+              <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+                <span>TDS Claimed under 26AS (₹)</span>
+                <FieldTooltip
+                  section="AdvanceTaxAndTDS"
+                  title="Tax Deducted at Source"
+                  rule="Total TDS credit claimed under Section 194J/194C as populated in Form 26AS / AIS."
+                />
+              </label>
               <input
                 type="number"
                 value={tdsClaimed}
