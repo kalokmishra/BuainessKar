@@ -18,15 +18,18 @@ import {
   Calendar,
   Layers,
   HelpCircle,
+  Database,
 } from 'lucide-react';
-import { useTaxData, TaxDataState } from '../context/TaxDataContext';
+import { useTaxData, TaxDataState, ZERO_TAX_DATA, DEMO_TAX_DATA } from '../context/TaxDataContext';
 import { ProfessionCategory, BusinessCategory, EntityType } from '../engine/types';
 
 export const GuidedOnboardingTour: React.FC = () => {
-  const { taxData, updateTaxData, closeTour, isTourOpen } = useTaxData();
+  const { taxData, updateTaxData, resetToZeros, closeTour, isTourOpen } = useTaxData();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState<boolean>(false);
+  const [showResetAllConfirmModal, setShowResetAllConfirmModal] = useState<boolean>(false);
+  const [resetNotification, setResetNotification] = useState<string | null>(null);
 
   // Draft state initialized from current taxData
   const [draft, setDraft] = useState<TaxDataState>({ ...taxData });
@@ -112,10 +115,27 @@ export const GuidedOnboardingTour: React.FC = () => {
     }
   };
 
-  // Option 2: Restart Tour from Beginning
+  // Restart Tour from Beginning
   const handleRestartTourFromBeginning = () => {
     setCurrentStep(1);
     setDraft({ ...taxData });
+  };
+
+  // Load Sample Demo Data into Tour Wizard
+  const handleLoadDemoData = () => {
+    setDraft({ ...DEMO_TAX_DATA });
+    setResetNotification('Loaded sample demo data (₹48 Lakhs receipts) into wizard.');
+    setTimeout(() => setResetNotification(null), 3500);
+  };
+
+  // Reset All Fields across Tour & Application to Zero
+  const handleConfirmResetAll = () => {
+    resetToZeros();
+    setDraft({ ...ZERO_TAX_DATA });
+    setCurrentStep(1);
+    setShowResetAllConfirmModal(false);
+    setResetNotification('All tax fields have been reset to 0.');
+    setTimeout(() => setResetNotification(null), 3500);
   };
 
   // Option 3: Exit Tour without Saving
@@ -177,14 +197,39 @@ export const GuidedOnboardingTour: React.FC = () => {
             {/* Header Right Action Tools */}
             <div className="flex items-center gap-2">
               <button
+                onClick={handleLoadDemoData}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                title="Load sample demo data into setup wizard"
+              >
+                <Database className="w-3.5 h-3.5 text-amber-400" />
+                <span>Load Demo Data</span>
+              </button>
+
+              <button
+                onClick={() => setShowResetAllConfirmModal(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-200 border border-rose-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                title="Reset all income, deduction & advance tax fields to zero"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                <span>Reset All to 0</span>
+              </button>
+
+              <button
                 onClick={handleExitClick}
-                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-all"
+                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
                 title="Exit Tour"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
+
+          {resetNotification && (
+            <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium px-4 py-2 rounded-xl flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{resetNotification}</span>
+            </div>
+          )}
 
           {/* Progress Bar */}
           <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -973,11 +1018,29 @@ export const GuidedOnboardingTour: React.FC = () => {
 
         {/* Modal Toolbar & Options Footer */}
         <div className="bg-slate-950 px-6 py-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Left: 3 Required Options Toolbar */}
+          {/* Left: Options Toolbar */}
           <div className="flex items-center gap-1.5 flex-wrap justify-center sm:justify-start">
             <button
+              onClick={handleLoadDemoData}
+              className="flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 px-2.5 py-1.5 rounded-lg border border-amber-500/30 transition-all cursor-pointer shadow-sm"
+              title="Load sample demo data (₹48 Lakhs receipts) into wizard"
+            >
+              <Database className="w-3 h-3 text-amber-400" />
+              <span>Load Demo Data</span>
+            </button>
+
+            <button
+              onClick={() => setShowResetAllConfirmModal(true)}
+              className="flex items-center gap-1 text-[11px] font-bold text-rose-300 hover:text-rose-200 bg-rose-950/40 hover:bg-rose-900/60 px-2.5 py-1.5 rounded-lg border border-rose-500/40 transition-all cursor-pointer shadow-sm"
+              title="Reset all tax fields across wizard & application to 0"
+            >
+              <RotateCcw className="w-3 h-3 text-rose-400" />
+              <span>Reset All to 0</span>
+            </button>
+
+            <button
               onClick={handleRestartCurrentSection}
-              className="flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-amber-300 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all"
+              className="flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-amber-300 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all cursor-pointer"
               title="Reset inputs in this section to 0"
             >
               <RotateCcw className="w-3 h-3 text-amber-400" />
@@ -986,7 +1049,7 @@ export const GuidedOnboardingTour: React.FC = () => {
 
             <button
               onClick={handleRestartTourFromBeginning}
-              className="flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-cyan-300 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all"
+              className="flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-cyan-300 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all cursor-pointer"
               title="Restart wizard from step 1"
             >
               <RefreshCw className="w-3 h-3 text-cyan-400" />
@@ -995,7 +1058,7 @@ export const GuidedOnboardingTour: React.FC = () => {
 
             <button
               onClick={handleExitClick}
-              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all"
+              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-rose-400 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-all cursor-pointer"
               title="Exit without saving wizard changes"
             >
               <X className="w-3 h-3 text-rose-400" />
@@ -1035,6 +1098,52 @@ export const GuidedOnboardingTour: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Reset All Data Modal */}
+      {showResetAllConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-rose-500/30 max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <button
+              onClick={() => setShowResetAllConfirmModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-rose-500/20 border border-rose-500/30 rounded-xl text-rose-400 shrink-0">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-100">Reset All Data to Zero?</h3>
+                <p className="text-xs text-slate-400">
+                  This will clear all gross receipts, salary, capital gains, deductions, and advance tax inputs back to clean zero values across the setup wizard and application.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+              You can re-enter your figures step-by-step or click &quot;Demo Data&quot; anytime to restore sample numbers.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowResetAllConfirmModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmResetAll}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Yes, Reset to 0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Exit Popup Modal */}
       {showExitConfirmModal && (

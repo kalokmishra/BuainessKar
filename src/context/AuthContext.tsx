@@ -12,6 +12,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (identifier: string, pass: string) => { success: boolean; message?: string };
   signup: (name: string, identifier: string, pass: string) => { success: boolean; message?: string };
+  changePassword: (currentPass: string, newPass: string) => { success: boolean; message?: string };
   logout: () => void;
 }
 
@@ -54,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const activeSessionRaw = localStorage.getItem(STORAGE_SESSION_KEY);
       if (activeSessionRaw) {
         setCurrentUser(JSON.parse(activeSessionRaw));
+      } else {
+        setCurrentUser(null);
       }
     } catch (err) {
       console.error('Error initializing AuthState:', err);
@@ -152,13 +155,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changePassword = (currentPass: string, newPass: string) => {
+    if (!currentUser) {
+      return { success: false, message: 'You must be logged in to change your password.' };
+    }
+
+    if (!currentPass) {
+      return { success: false, message: 'Please enter your current password.' };
+    }
+
+    if (!newPass || newPass.length < 4) {
+      return { success: false, message: 'New password must be at least 4 characters long.' };
+    }
+
+    try {
+      const storedUsersRaw = localStorage.getItem(STORAGE_USERS_KEY);
+      const usersList = storedUsersRaw ? JSON.parse(storedUsersRaw) : INITIAL_DEMO_USERS;
+
+      const userIndex = usersList.findIndex(
+        (u: any) =>
+          u.id === currentUser.id ||
+          u.identifier.trim().toLowerCase() === currentUser.identifier.trim().toLowerCase()
+      );
+
+      if (userIndex === -1) {
+        return { success: false, message: 'User account not found.' };
+      }
+
+      if (usersList[userIndex].passwordHash !== currentPass) {
+        return { success: false, message: 'Incorrect current password. Please try again.' };
+      }
+
+      usersList[userIndex].passwordHash = newPass;
+      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(usersList));
+
+      return { success: true, message: 'Password updated successfully!' };
+    } catch (e: any) {
+      return { success: false, message: e.message || 'Failed to update password.' };
+    }
+  };
+
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem(STORAGE_SESSION_KEY);
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, signup, logout }}>
+    <AuthContext.Provider value={{ currentUser, login, signup, changePassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

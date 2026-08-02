@@ -55,6 +55,7 @@ function MainAppContent() {
 
   useEffect(() => {
     setSchemaMeta(getTaxSchema().meta);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [activeTab]);
 
   if (!currentUser) {

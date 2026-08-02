@@ -10,7 +10,7 @@
 
 1. **Guided Onboarding Setup Wizard & Clean Zero-Default Profile (`/src/components/GuidedOnboardingTour.tsx` & `/src/context/TaxDataContext.tsx`):**
    - Welcomes first-time users with a clean 0-value tax profile and an interactive 4-step wizard (Taxpayer Classification, Gross Turnover & Cash Receipts, Multi-Head Income & Capital Gains, and Deductions/Advance Tax).
-   - Instant "Load Sample Demo Data" toggle to populate realistic sample numbers (₹48 Lakhs receipts) for instant exploration across all tabs.
+   - In-wizard "Load Demo Data" and "Reset All to 0" tools inside the setup modal to populate sample figures (₹48 Lakhs receipts) or reset values, keeping top-level screens uncluttered and clean.
    - Synchronizes tax inputs seamlessly in real time across all calculation tabs (Calculator, Multi-Head, Cash Surveillance, Advance Tax, Export Invoice).
 
 2. **Rules-as-Code (RaC) Architecture:**
@@ -56,10 +56,10 @@
     - Aggregates multi-head income across Salary (net of Salaried Standard Deduction ₹75,000 New / ₹50,000 Old), Freelance Presumptive Business/Profession (Sec 44AD/44ADA), Capital Gains (STCG Sec 111A at 20%, LTCG Sec 112A at 12.5% above ₹1.25L exemption, LTCG Sec 112), and Other Income.
     - Provides a comprehensive side-by-side tax liability overview comparing New vs Old Tax Regimes with basic exemption set-off and Section 87A rebate rules for FY 2026-27 (AY 2027-28).
 
-13. **User Authentication & Session Management (`/src/context/AuthContext.tsx` & `/src/components/LoginModal.tsx`):**
+13. **User Authentication & Session Management (`/src/context/AuthContext.tsx`, `/src/components/LoginModal.tsx` & `/src/components/ChangePasswordModal.tsx`):**
     - Gatekeeps app access so only authenticated users can access tax calculation features.
     - Supports user signup and login via Email ID or 10-digit Indian Mobile Number with static password verification and localStorage persistence.
-    - Features pre-populated demo accounts for instant testing, along with a top header user profile badge and logout option.
+    - Features top-right user profile dropdown menu (with Reset Password modal trigger and Logout), "Forgot password?" admin contact notice (`contactadmin@businesskar.com`) on the login screen, and automatic window scroll-to-top on tab navigation.
 
 ---
 

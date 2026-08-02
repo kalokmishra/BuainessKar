@@ -8,6 +8,8 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
@@ -21,6 +23,7 @@ export const LoginModal: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,9 +173,20 @@ export const LoginModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">
+                Password
+              </label>
+              {mode === 'LOGIN' && (
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(!showForgotPassword)}
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium hover:underline cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
               <input
@@ -184,6 +198,35 @@ export const LoginModal: React.FC = () => {
               />
             </div>
           </div>
+
+          {showForgotPassword && (
+            <div className="bg-amber-950/80 border border-amber-500/40 p-3.5 rounded-xl text-xs text-amber-200 space-y-2 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                  <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Forgot Password?</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-amber-400 hover:text-amber-200 p-0.5 cursor-pointer"
+                  title="Close notice"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs leading-relaxed text-amber-100">
+                Please contact admin at{' '}
+                <a
+                  href="mailto:contactadmin@businesskar.com"
+                  className="font-bold underline text-amber-300 hover:text-white"
+                >
+                  contactadmin@businesskar.com
+                </a>{' '}
+                to reset your password.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

@@ -106,18 +106,21 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Handles basic exemption set-off for resident individuals if normal slab income is below the basic exemption threshold.
   - Compares New vs Old Tax Regime total tax liabilities and generates regime recommendation with net tax savings.
 
-### Module 9: `AuthContext.tsx` & `LoginModal.tsx`
+### Module 9: `AuthContext.tsx`, `LoginModal.tsx` & `ChangePasswordModal.tsx`
 - **Responsibilities:**
   - Manages client-side user authentication, session state, and localStorage user records.
   - Gatekeeps application access via the `LoginModal` overlay when no active user session exists.
   - Validates Email ID and Indian 10-digit mobile phone numbers with static password checks on login and signup.
-  - Displays user profile badge in the global Header with user name, email/phone indicator, and logout action.
+  - Provides in-app password change capabilities (`changePassword`) via `ChangePasswordModal` for logged-in users.
+  - Provides "Forgot password?" admin contact instruction (`contactadmin@businesskar.com`) on the login screen.
+  - Displays interactive user profile dropdown in the global Header with user profile information, Reset Password modal trigger, and logout action.
 
 ### Module 10: `TaxDataContext.tsx`, `GuidedOnboardingTour.tsx` & `OnboardingPromptBanner.tsx`
 - **Responsibilities:**
   - Manages application-wide shared financial state (`TaxDataPayload`), initializing first-time users with a clean 0-value tax profile.
-  - Features an interactive 4-step Guided Onboarding Wizard (`GuidedOnboardingTour`) allowing structured step-by-step entry of entity type, gross receipts, salary, capital gains, and deductions.
-  - Provides a top prompt banner (`OnboardingPromptBanner`) and header action buttons to launch the onboarding tour or trigger 1-click sample demo data loading (`loadDemoData`).
+  - Features an interactive 4-step Guided Onboarding Setup Wizard (`GuidedOnboardingTour`) allowing structured step-by-step entry of entity type, gross receipts, salary, capital gains, and deductions.
+  - Houses in-wizard action tools including "Load Demo Data" (populates sample figures for step-by-step custom editing) and "Reset All to 0" (resets all fields back to zero values across the tour and application), keeping main screen headers clean and uncluttered.
+  - Provides a top prompt banner (`OnboardingPromptBanner`) and launcher buttons to trigger the guided wizard anytime.
   - Automatically synchronizes financial state changes in real time across all application tabs (`CalculatorTab`, `ComprehensiveTaxTab`, `CashSurveillanceTab`, `AdvanceTaxTab`, `ExportInvoiceTab`).
 
 ### Utility 1: `pdfExporter.ts`

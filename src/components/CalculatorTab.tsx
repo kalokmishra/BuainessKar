@@ -19,6 +19,8 @@ import {
   ChevronUp,
   Download,
   FileText,
+  Play,
+  HelpCircle,
 } from 'lucide-react';
 import {
   EligibilityResult,
@@ -76,7 +78,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   evaluationData,
   onNavigateToAI,
 }) => {
-  const { taxData, updateTaxData } = useTaxData();
+  const { taxData, updateTaxData, openTour } = useTaxData();
 
   const [entityType, setEntityType] = useState<EntityType>(taxData.entityType);
   const [activityType, setActivityType] = useState<'PROFESSION' | 'BUSINESS'>(taxData.activityType);
@@ -381,8 +383,17 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
           <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto flex-wrap">
             <button
+              onClick={openTour}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs transition-all shadow-sm cursor-pointer"
+              title="Launch Guided Setup Tour (Pre-populates active data)"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Guided Setup</span>
+            </button>
+
+            <button
               onClick={handleExportPdf}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 font-semibold px-3 py-2 rounded-xl text-xs transition-all shadow-sm"
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 font-semibold px-3 py-2 rounded-xl text-xs transition-all shadow-sm cursor-pointer"
               title="Export current calculation result to a formatted PDF document"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />

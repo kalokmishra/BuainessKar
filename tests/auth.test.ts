@@ -55,9 +55,58 @@ describe('User Authentication & Session Engine', () => {
     const failedLogin = authenticateUser(userDb, 'rahul@taxpro.in', 'wrongpass');
     expect(failedLogin.success).toBe(false);
   });
+
+  it('ensures new visitors and logged out users remain unauthenticated (currentUser is null)', () => {
+    // 1. Initial state when localStorage has no session
+    const initialSession = getInitialSession();
+    expect(initialSession).toBeNull();
+
+    // 2. Simulate login session set
+    const sessionUser = { id: 'usr_1', name: 'Rahul Sharma', identifier: 'rahul@taxpro.in' };
+    localStorage.setItem('tax_app_active_session_v1', JSON.stringify(sessionUser));
+    expect(getInitialSession()).toEqual(sessionUser);
+
+    // 3. Simulate logout
+    localStorage.removeItem('tax_app_active_session_v1');
+    expect(getInitialSession()).toBeNull();
+  });
+
+  it('allows logged in user to reset password with valid current password', () => {
+    const userDb = [
+      {
+        id: 'usr_1',
+        name: 'Rahul',
+        identifier: 'rahul@taxpro.in',
+        passwordHash: 'password123',
+      },
+    ];
+
+    // Wrong current password
+    const failResult = changeUserPassword(userDb, 'usr_1', 'wrongpass', 'newpass456');
+    expect(failResult.success).toBe(false);
+
+    // Correct current password
+    const successResult = changeUserPassword(userDb, 'usr_1', 'password123', 'newpass456');
+    expect(successResult.success).toBe(true);
+
+    // Login with new password
+    const loginWithNewPass = authenticateUser(userDb, 'rahul@taxpro.in', 'newpass456');
+    expect(loginWithNewPass.success).toBe(true);
+  });
 });
 
 // Helper logic mirroring AuthContext
+function getInitialSession() {
+  const activeSessionRaw = localStorage.getItem('tax_app_active_session_v1');
+  if (activeSessionRaw) {
+    try {
+      return JSON.parse(activeSessionRaw);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 function validateSignupInput(name: string, identifier: string, pass: string) {
   const cleanId = identifier.trim().toLowerCase();
   const isEmail = cleanId.includes('@');
@@ -87,4 +136,13 @@ function authenticateUser(userDb: any[], identifier: string, pass: string) {
     return { success: true, user };
   }
   return { success: false, message: 'Invalid credentials' };
+}
+
+function changeUserPassword(userDb: any[], userId: string, currentPass: string, newPass: string) {
+  const user = userDb.find((u) => u.id === userId);
+  if (!user) return { success: false, message: 'User not found' };
+  if (user.passwordHash !== currentPass) return { success: false, message: 'Incorrect current password' };
+  if (!newPass || newPass.length < 4) return { success: false, message: 'Password too short' };
+  user.passwordHash = newPass;
+  return { success: true };
 }

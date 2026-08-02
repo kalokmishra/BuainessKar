@@ -1,9 +1,9 @@
 import React from 'react';
-import { Sparkles, Play, Database, X, RotateCcw } from 'lucide-react';
+import { Sparkles, Play, X } from 'lucide-react';
 import { useTaxData } from '../context/TaxDataContext';
 
 export const OnboardingPromptBanner: React.FC = () => {
-  const { isZeroData, isBannerDismissed, dismissBanner, openTour, loadDemoData, resetToZeros, taxData } =
+  const { isZeroData, isBannerDismissed, dismissBanner, openTour, taxData } =
     useTaxData();
 
   if (isBannerDismissed && !isZeroData) {
@@ -38,8 +38,8 @@ export const OnboardingPromptBanner: React.FC = () => {
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
               {isZeroData
-                ? 'Your tax profile currently contains 0 values. You can launch our step-by-step Guided Setup Wizard to enter your exact income sources, or load sample demo data to explore calculations immediately.'
-                : 'Want to update your financial details or try sample calculations? Use our Guided Setup Wizard anytime.'}
+                ? 'Your tax profile currently contains 0 values. Launch our step-by-step Guided Setup Wizard to enter your custom entries, or click "Load Demo Data" inside the wizard to explore calculations with sample figures.'
+                : 'Want to update your financial details or explore sample calculations? Launch our Guided Setup Wizard anytime.'}
             </p>
           </div>
         </div>
@@ -55,28 +55,8 @@ export const OnboardingPromptBanner: React.FC = () => {
           </button>
 
           <button
-            onClick={loadDemoData}
-            className="flex-1 md:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
-            title="Populate standard sample numbers"
-          >
-            <Database className="w-3.5 h-3.5 text-amber-400" />
-            <span>Load Demo Data</span>
-          </button>
-
-          {!isZeroData && (
-            <button
-              onClick={resetToZeros}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-rose-950/40 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
-              title="Reset all values to zero"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-              <span>Reset to 0</span>
-            </button>
-          )}
-
-          <button
             onClick={dismissBanner}
-            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-all"
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
             title="Dismiss Banner"
           >
             <X className="w-4 h-4" />
