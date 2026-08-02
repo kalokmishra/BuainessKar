@@ -1,9 +1,9 @@
 import React from 'react';
-import { Sparkles, Play, Database, X, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Play, Database, X, RotateCcw } from 'lucide-react';
 import { useTaxData } from '../context/TaxDataContext';
 
 export const OnboardingPromptBanner: React.FC = () => {
-  const { isZeroData, isBannerDismissed, dismissBanner, openTour, loadDemoData, taxData } =
+  const { isZeroData, isBannerDismissed, dismissBanner, openTour, loadDemoData, resetToZeros, taxData } =
     useTaxData();
 
   if (isBannerDismissed && !isZeroData) {
@@ -62,6 +62,17 @@ export const OnboardingPromptBanner: React.FC = () => {
             <Database className="w-3.5 h-3.5 text-amber-400" />
             <span>Load Demo Data</span>
           </button>
+
+          {!isZeroData && (
+            <button
+              onClick={resetToZeros}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-rose-950/40 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
+              title="Reset all values to zero"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+              <span>Reset to 0</span>
+            </button>
+          )}
 
           <button
             onClick={dismissBanner}

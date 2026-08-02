@@ -28,12 +28,14 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ### 1. 🧙‍♂️ Guided Onboarding Setup Wizard & Clean Zero-Default Profile
 * **Clean 0-Value Starting Profile**: Starts with 0 values so users enter their real tax data without confusion from arbitrary pre-filled defaults.
+* **Small Tour Launcher Icon & Pre-Populated Wizard**: Click the small **Tour Launcher Icon** (`HelpCircle`) or **"Guided Setup"** button anytime. If you have existing tax data, all fields in the 4-step wizard are **automatically pre-populated** with your valid numbers so you can review, update, or leave them unchanged. Completing the wizard updates the entire application state with your latest values.
 * **Interactive 4-Step Setup Wizard**:
   1. *Taxpayer Classification*: Select Individual vs HUF vs Firm, and Professional vs Business activity categories.
   2. *Gross Turnover & Cash Receipts*: Enter exact gross receipts and digital vs cash breakdown.
   3. *Multi-Head Income & Capital Gains*: Input gross salary, STCG Equity (Sec 111A 20%), LTCG Equity (Sec 112A 12.5%), and interest income.
   4. *Deductions & Advance Tax*: Specify Chapter VI-A deductions (Sec 80C/80D) and quarterly advance tax payments made.
-* **1-Click Demo Data Toggle**: Click **"Load Demo Data"** anytime in the top header or banner to instantly populate realistic sample numbers (₹48 Lakhs receipts) to explore calculations.
+* **1-Click Reset to 0**: Click **"Reset to 0"** in the top header or banner (featuring a quick confirmation modal) to clear all income, deduction, and advance tax fields back to clean zero values anytime.
+* **1-Click Demo Data Toggle**: Click **"Demo Data"** anytime in the top header or banner to instantly populate realistic sample numbers (₹48 Lakhs receipts) to explore calculations.
 * **Real-Time Cross-Tab Synchronization**: Updating tax data in the wizard or any tab automatically reflects across all calculator views simultaneously.
 
 ---

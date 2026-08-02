@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   ChevronRight,
@@ -23,13 +23,21 @@ import { useTaxData, TaxDataState } from '../context/TaxDataContext';
 import { ProfessionCategory, BusinessCategory, EntityType } from '../engine/types';
 
 export const GuidedOnboardingTour: React.FC = () => {
-  const { taxData, updateTaxData, closeTour } = useTaxData();
+  const { taxData, updateTaxData, closeTour, isTourOpen } = useTaxData();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState<boolean>(false);
 
   // Draft state initialized from current taxData
   const [draft, setDraft] = useState<TaxDataState>({ ...taxData });
+
+  // Re-sync draft with latest valid taxData whenever the tour is launched
+  useEffect(() => {
+    if (isTourOpen) {
+      setDraft({ ...taxData });
+      setCurrentStep(1);
+    }
+  }, [isTourOpen, taxData]);
 
   // Update draft helper
   const updateDraft = (updates: Partial<TaxDataState>) => {
@@ -138,6 +146,10 @@ export const GuidedOnboardingTour: React.FC = () => {
     { num: 3, title: 'Deductions & Tax Credits' },
     { num: 4, title: 'GST, Export & Advance Tax' },
   ];
+
+  if (!isTourOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
