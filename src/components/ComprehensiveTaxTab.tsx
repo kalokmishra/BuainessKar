@@ -17,6 +17,7 @@ import {
 import { calculateComprehensiveTax } from '../engine/comprehensiveTax';
 import { ComprehensiveTaxInput, WorkflowRoute } from '../engine/types';
 import { useTaxData } from '../context/TaxDataContext';
+import { FieldTooltip } from './FieldTooltip';
 
 export const ComprehensiveTaxTab: React.FC = () => {
   const { taxData, updateTaxData } = useTaxData();
@@ -195,7 +196,12 @@ export const ComprehensiveTaxTab: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                   <Briefcase className="w-3.5 h-3.5" />
-                  Head 1: Salary Income
+                  <span>Head 1: Salary Income</span>
+                  <FieldTooltip
+                    section="Sec 16(ia) Salary Rules"
+                    title="Standard Deduction"
+                    rule="Gross salary from employment. Salaried individuals get an automatic Standard Deduction of ₹75,000 under the New Tax Regime (FY 2026-27) or ₹50,000 under the Old Tax Regime."
+                  />
                 </label>
                 <span className="text-[10px] text-slate-400 font-mono">
                   Std Ded: ₹75k (New) / ₹50k (Old)
@@ -217,7 +223,12 @@ export const ComprehensiveTaxTab: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5" />
-                  Head 2: Presumptive Business / Freelance
+                  <span>Head 2: Presumptive Business / Freelance</span>
+                  <FieldTooltip
+                    section="Sec 44AD / 44ADA"
+                    title="Dual-Income Freelancer Rule"
+                    rule="Salaried taxpayers can simultaneously earn freelance professional or business income under Sec 44ADA (50% deemed profit) or Sec 44AD (6%/8% deemed profit)."
+                  />
                 </label>
                 <span className="text-[10px] text-slate-400 font-mono">Sec 44AD / 44ADA</span>
               </div>
@@ -227,7 +238,7 @@ export const ComprehensiveTaxTab: React.FC = () => {
                 <select
                   value={workflowRoute}
                   onChange={(e) => setWorkflowRoute(e.target.value as WorkflowRoute)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-medium focus:border-emerald-500 outline-none"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-medium focus:border-emerald-500 outline-none cursor-pointer"
                 >
                   <option value="SECTION_44ADA">Section 44ADA (Professionals - 50% Deemed Profit)</option>
                   <option value="SECTION_44AD">Section 44AD (Small Business - 6% Digital / 8% Cash)</option>
@@ -236,7 +247,14 @@ export const ComprehensiveTaxTab: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] font-medium text-slate-300 block mb-1">Gross Receipts (₹)</label>
+                  <label className="text-[11px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>Gross Receipts (₹)</span>
+                    <FieldTooltip
+                      section="Gross Turnover"
+                      title="Presumptive Revenue"
+                      rule="Total freelance professional fees or business gross receipts earned in FY 2026-27."
+                    />
+                  </label>
                   <input
                     type="number"
                     value={freelanceGrossReceipts}
@@ -245,7 +263,14 @@ export const ComprehensiveTaxTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-slate-300 block mb-1">Cash Receipts (₹)</label>
+                  <label className="text-[11px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>Cash Receipts (₹)</span>
+                    <FieldTooltip
+                      section="5% Cash Limit"
+                      title="Cash Ratio Rule"
+                      rule="Portion received in cash. Keeping cash ≤ 5% enables higher turnover limits (₹75L Sec 44ADA / ₹3Cr Sec 44AD)."
+                    />
+                  </label>
                   <input
                     type="number"
                     value={freelanceCashReceipts}
@@ -261,15 +286,25 @@ export const ComprehensiveTaxTab: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  Head 3: Capital Gains
+                  <span>Head 3: Capital Gains</span>
+                  <FieldTooltip
+                    section="Capital Gains Rates"
+                    title="Special Rate Rules"
+                    rule="Capital gains are taxed at special statutory rates regardless of slab rates (STCG Equity Sec 111A at 20%, LTCG Equity Sec 112A at 12.5% above ₹1.25L exemption, LTCG Other Sec 112 at 12.5%)."
+                  />
                 </label>
                 <span className="text-[10px] text-slate-400 font-mono">Special Tax Rates</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-medium text-slate-300 block mb-1">
-                    STCG Equity (Sec 111A) <span className="text-emerald-400">(20%)</span>
+                  <label className="text-[10px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>STCG Equity (Sec 111A) <span className="text-emerald-400">(20%)</span></span>
+                    <FieldTooltip
+                      section="Sec 111A"
+                      title="Short-Term Equity Gains"
+                      rule="Gains from listed equity shares or equity mutual funds held for ≤ 12 months. Taxed at a flat rate of 20% (FY 2026-27)."
+                    />
                   </label>
                   <input
                     type="number"
@@ -279,8 +314,13 @@ export const ComprehensiveTaxTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium text-slate-300 block mb-1">
-                    STCG Other <span className="text-slate-400">(Slab Rates)</span>
+                  <label className="text-[10px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>STCG Other <span className="text-slate-400">(Slab Rates)</span></span>
+                    <FieldTooltip
+                      section="Normal STCG"
+                      title="Other Short-Term Assets"
+                      rule="Short-term gains from debt funds, unlisted shares, or real estate. Added to total income and taxed at applicable slab rates."
+                    />
                   </label>
                   <input
                     type="number"
@@ -293,8 +333,13 @@ export const ComprehensiveTaxTab: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-medium text-slate-300 block mb-1">
-                    LTCG Equity (Sec 112A) <span className="text-emerald-400">(12.5% &gt; ₹1.25L)</span>
+                  <label className="text-[10px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>LTCG Equity (Sec 112A) <span className="text-emerald-400">(12.5% &gt; ₹1.25L)</span></span>
+                    <FieldTooltip
+                      section="Sec 112A"
+                      title="Long-Term Equity Exemption"
+                      rule="Gains from equity shares or equity funds held for > 12 months. Enjoys an aggregate exemption of ₹1,25,000 per financial year; excess is taxed at 12.5%."
+                    />
                   </label>
                   <input
                     type="number"
@@ -304,8 +349,13 @@ export const ComprehensiveTaxTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium text-slate-300 block mb-1">
-                    LTCG Other (Real Estate/Gold) <span className="text-emerald-400">(12.5%)</span>
+                  <label className="text-[10px] font-medium text-slate-300 flex items-center mb-1">
+                    <span>LTCG Other (Real Estate/Gold) <span className="text-emerald-400">(12.5%)</span></span>
+                    <FieldTooltip
+                      section="Sec 112"
+                      title="Real Estate & Other Assets"
+                      rule="Long-term capital gains from real estate, gold, unlisted securities. Taxed at a flat rate of 12.5% without indexation under Finance Act 2024/2025 rules."
+                    />
                   </label>
                   <input
                     type="number"
@@ -320,7 +370,14 @@ export const ComprehensiveTaxTab: React.FC = () => {
             {/* 4. Other Income & 5. Chapter VI-A Deductions */}
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
-                <label className="text-[11px] font-bold text-emerald-400 block mb-1">Head 4: Other Income</label>
+                <label className="text-[11px] font-bold text-emerald-400 flex items-center mb-1">
+                  <span>Head 4: Other Income</span>
+                  <FieldTooltip
+                    section="Other Sources"
+                    title="Interest & Dividend Income"
+                    rule="Savings bank interest, FD interest, dividends, and rental income. Taxable at normal slab rates under both tax regimes."
+                  />
+                </label>
                 <input
                   type="number"
                   value={otherIncome}
@@ -331,7 +388,14 @@ export const ComprehensiveTaxTab: React.FC = () => {
               </div>
 
               <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
-                <label className="text-[11px] font-bold text-amber-400 block mb-1">Chapter VI-A Deductions</label>
+                <label className="text-[11px] font-bold text-amber-400 flex items-center mb-1">
+                  <span>Chapter VI-A Deductions</span>
+                  <FieldTooltip
+                    section="Old Regime Only"
+                    title="Sec 80C / 80D / 80E"
+                    rule="Eligible tax-saving deductions under Old Tax Regime (Sec 80C up to ₹1.5L, 80D, 80E, 80G). Disallowed under New Tax Regime."
+                  />
+                </label>
                 <input
                   type="number"
                   value={chapterVIADeductions}

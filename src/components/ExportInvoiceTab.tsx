@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, ShieldCheck, Copy, Check, Info, Globe } from 'lucide-react';
 import { generateInvoiceExportMetadata } from '../engine/invoiceExporter';
 import { useTaxData } from '../context/TaxDataContext';
+import { FieldTooltip } from './FieldTooltip';
 
 export const ExportInvoiceTab: React.FC = () => {
   const { taxData, updateTaxData } = useTaxData();
@@ -125,12 +126,24 @@ export const ExportInvoiceTab: React.FC = () => {
                 className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
               />
               <span>Cross-Border Zero-Rated Export Invoice (LUT)</span>
+              <FieldTooltip
+                section="Sec 16 IGST Act"
+                title="Zero-Rated Export under LUT"
+                rule="Export of services outside India under Letter of Undertaking (LUT) is zero-rated under GST Section 16, allowing exporters to bill without IGST payment."
+              />
             </label>
 
             {isExport && (
               <div className="space-y-2 pt-2 border-t border-slate-800">
                 <div>
-                  <label className="text-[11px] text-slate-400 block mb-1">LUT Reference Number</label>
+                  <label className="text-[11px] text-slate-400 flex items-center mb-1">
+                    <span>LUT Reference Number</span>
+                    <FieldTooltip
+                      section="Rule 96A CGST Rules"
+                      title="Letter of Undertaking (ARN)"
+                      rule="An annual LUT (Form GST RFD-11) filed on the GST portal prior to export. Must be quoted on all export invoices to claim zero-rated status."
+                    />
+                  </label>
                   <input
                     type="text"
                     value={lutNumber}
@@ -141,11 +154,18 @@ export const ExportInvoiceTab: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Billing Currency</label>
+                    <label className="text-[11px] text-slate-400 flex items-center mb-1">
+                      <span>Billing Currency</span>
+                      <FieldTooltip
+                        section="FEMA & Rule 34"
+                        title="Foreign Convertible Currency"
+                        rule="Export proceeds must be received in convertible foreign currency (USD/EUR/GBP) within prescribed RBI timeframe to qualify as export of services under Sec 2(6) IGST Act."
+                      />
+                    </label>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-100"
+                      className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-100 cursor-pointer"
                     >
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
@@ -154,7 +174,14 @@ export const ExportInvoiceTab: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Exchange Rate (INR)</label>
+                    <label className="text-[11px] text-slate-400 flex items-center mb-1">
+                      <span>Exchange Rate (INR)</span>
+                      <FieldTooltip
+                        section="Rule 34 CGST"
+                        title="CBIC Reference Rate"
+                        rule="Conversion to INR must use the official exchange rate determined by CBIC or RBI as on the date of invoice generation."
+                      />
+                    </label>
                     <input
                       type="number"
                       step="0.1"
@@ -170,13 +197,18 @@ export const ExportInvoiceTab: React.FC = () => {
 
           {/* SAC Code Selector */}
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">
-              SAC Code Mapping (Service Accounting Code)
+            <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+              <span>SAC Code Mapping (Service Accounting Code)</span>
+              <FieldTooltip
+                section="GST SAC Classification"
+                title="Service Accounting Code"
+                rule="Uniform classification code under GST for services. 998314 covers Information Technology consultancy and software development services."
+              />
             </label>
             <select
               value={sacCode}
               onChange={(e) => setSacCode(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 cursor-pointer"
             >
               <option value="998314">998314 - IT consultancy and software supply</option>
               <option value="998311">998311 - Management consulting services</option>
@@ -187,8 +219,13 @@ export const ExportInvoiceTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">
-              Service Fee Amount ({currency})
+            <label className="text-xs font-medium text-slate-300 flex items-center mb-1">
+              <span>Service Fee Amount ({currency})</span>
+              <FieldTooltip
+                section="Invoice Value"
+                title="Foreign Currency Amount"
+                rule="The total fee billed to foreign client in foreign currency. Converted to INR using exchange rate for gross revenue & GST compliance."
+              />
             </label>
             <input
               type="number"

@@ -123,6 +123,11 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Provides a top prompt banner (`OnboardingPromptBanner`) and launcher buttons to trigger the guided wizard anytime.
   - Automatically synchronizes financial state changes in real time across all application tabs (`CalculatorTab`, `ComprehensiveTaxTab`, `CashSurveillanceTab`, `AdvanceTaxTab`, `ExportInvoiceTab`).
 
+### Module 11: Plain-English Assistance (`FieldTooltip.tsx` & `TaxInfoDrawer.tsx`)
+- **Responsibilities:**
+  - Provides interactive hover tooltips (`FieldTooltip`) on tax input fields explaining statutory limits, section codes, and calculation formulas.
+  - Houses a slide-out Tax Glossary & Concepts drawer (`TaxInfoDrawer`) offering plain-English definitions, real-world examples, and category filtering for non-financial users.
+
 ### Utility 1: `pdfExporter.ts`
 - **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
 - **Responsibilities:**
@@ -139,7 +144,7 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (29 tests across 9 test suites):
+Test coverage includes (31 tests across 9 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).

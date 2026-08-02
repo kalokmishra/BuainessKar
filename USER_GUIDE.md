@@ -49,6 +49,8 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 * **Forgot Password Admin Help**: If a user forgets their password on the login screen, clicking **"Forgot password?"** displays an instant instruction advising them to contact the admin at `contactadmin@businesskar.com`.
 * **Credential-Based Login & Quick Demo Buttons**: Unauthenticated or logged-out visitors must provide valid credentials to log in. Includes 1-click Quick Demo credential buttons (`rahul@taxpro.in` / `password123` or `9876543210` / `password123`) directly on the sign-in modal for instant test-driving.
 * **Automatic Top Scroll Navigation**: Switching between navigation tabs automatically returns the window scroll position directly to the top of the page so you can immediately view header metrics and primary content without manual scrolling.
+* **Hover-Based Field Tooltips**: Every input field across the calculator tabs features an interactive tooltip icon (`?`) that displays statutory income tax rules, section numbers, and percentage limits upon hover or touch.
+* **Interactive Tax Glossary Drawer**: Click the **"Tax Glossary"** button in the top header to open a slide-out info drawer providing plain-English definitions, statutory section references, real-world examples, and search filtering for complex tax jargon (e.g., 44ADA, Deemed Profit, 5% Cash Rule, 234C Penalty, LUT Export, Standard Deduction).
 
 ---
 

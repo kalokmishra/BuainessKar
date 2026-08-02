@@ -34,6 +34,7 @@ import { useTaxData } from '../context/TaxDataContext';
 import { generateTaxCalculationPdf } from '../utils/pdfExporter';
 import { generateITR4Json } from '../engine/itr4Schema';
 import { calculateAdvanceTax } from '../engine/advanceTax';
+import { FieldTooltip } from './FieldTooltip';
 
 interface SavedCalculation {
   id: string;
@@ -579,32 +580,42 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
           {/* Entity Type */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              1. Entity Structure
+            <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center">
+              <span>1. Entity Structure</span>
+              <FieldTooltip
+                section="Sec 44AD / 44ADA Eligibility"
+                title="Eligible Taxpayer Entities"
+                rule="Presumptive taxation under Section 44AD/44ADA is available exclusively to resident Individuals, HUFs, and Partnership firms (excluding LLPs). Companies (Pvt Ltd/Public) and LLPs are strictly prohibited by statute."
+              />
             </label>
             <select
               value={entityType}
               onChange={(e) => setEntityType(e.target.value as EntityType)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="INDIVIDUAL">Individual / Freelancer / Consultant</option>
               <option value="HUF">Hindu Undivided Family (HUF)</option>
               <option value="PARTNERSHIP">Partnership Firm (non-LLP)</option>
               <option value="LLP">Limited Liability Partnership (LLP) - Disqualified</option>
-              <option value="PRIVATE_LIMITED font-bold">Private Limited Company - Disqualified</option>
+              <option value="PRIVATE_LIMITED">Private Limited Company - Disqualified</option>
             </select>
           </div>
 
           {/* Activity Type */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              2. Activity Category
+            <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center">
+              <span>2. Activity Category</span>
+              <FieldTooltip
+                section="Classification"
+                title="Profession vs Business"
+                rule="Select Profession for notified professional services under Sec 44AA(1) (50% deemed profit under Sec 44ADA). Select Business for trade, manufacturing, or general services (6%/8% deemed profit under Sec 44AD)."
+              />
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setActivityType('PROFESSION')}
-                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all ${
+                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
                   activityType === 'PROFESSION'
                     ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-semibold'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
@@ -615,7 +626,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActivityType('BUSINESS')}
-                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all ${
+                className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
                   activityType === 'BUSINESS'
                     ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-semibold'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
@@ -629,13 +640,18 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           {/* Sub category */}
           {activityType === 'PROFESSION' ? (
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Profession Category
+              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center">
+                <span>Profession Category</span>
+                <FieldTooltip
+                  section="Sec 44ADA"
+                  title="Notified Professions"
+                  rule="Must be a specified profession under Section 44AA(1) (e.g. IT, Legal, Medical, CA, Engineering, Creative). Tax is levied on a minimum 50% deemed profit of gross receipts."
+                />
               </label>
               <select
                 value={professionCategory}
                 onChange={(e) => setProfessionCategory(e.target.value as ProfessionCategory)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
               >
                 <option value="IT_SOFTWARE">IT Software & Development Consultancy</option>
                 <option value="TECHNICAL_CONSULTANCY">Technical & Management Consultancy</option>
@@ -650,13 +666,18 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Business Category
+              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center">
+                <span>Business Category</span>
+                <FieldTooltip
+                  section="Sec 44AD"
+                  title="Eligible Small Businesses"
+                  rule="Covers retail trading, wholesale, manufacturing, and general services. Commission, brokerage, and agency businesses are statutory exclusions under Sec 44AD(6)."
+                />
               </label>
               <select
                 value={businessCategory}
                 onChange={(e) => setBusinessCategory(e.target.value as BusinessCategory)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
               >
                 <option value="RETAIL_TRADING">Retail Trading & E-commerce</option>
                 <option value="WHOLESALE_TRADING">Wholesale Distribution</option>
@@ -671,8 +692,13 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           {/* Gross Receipts */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-xs font-medium text-slate-300">
-                Gross Annual Receipts / Turnover (₹)
+              <label className="text-xs font-medium text-slate-300 flex items-center">
+                <span>Gross Annual Receipts / Turnover (₹)</span>
+                <FieldTooltip
+                  section="Sec 44AD / 44ADA Turnover Cap"
+                  title="Annual Revenue Thresholds"
+                  rule="Total gross revenue earned during FY 2026-27. Presumptive limits are ₹50L for Professions (Sec 44ADA) and ₹2Cr for Businesses (Sec 44AD). Caps expand to ₹75L / ₹3Cr if cash receipts are ≤ 5%."
+                />
               </label>
               <span className="text-[11px] text-emerald-400 font-semibold">
                 {formatINR(grossReceipts)}
@@ -691,7 +717,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                   key={val}
                   type="button"
                   onClick={() => setGrossReceipts(val)}
-                  className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded"
+                  className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded cursor-pointer transition-colors"
                 >
                   ₹{(val / 100000).toFixed(0)}L
                 </button>
@@ -702,8 +728,13 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           {/* Cash Receipts */}
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-xs font-medium text-slate-300">
-                Cash Receipts Portion (₹)
+              <label className="text-xs font-medium text-slate-300 flex items-center">
+                <span>Cash Receipts Portion (₹)</span>
+                <FieldTooltip
+                  section="5% Cash Limit & Sec 44AD Rates"
+                  title="Cash vs Digital Receipts Rule"
+                  rule="Total receipts received in cash or non-account payee cheques. Keeping cash ≤ 5% unlocks extended turnover limits (₹75L for 44ADA / ₹3Cr for 44AD). In Sec 44AD, digital receipts enjoy a lower 6% deemed profit rate (vs 8% for cash)."
+                />
               </label>
               <span className={`text-[11px] font-semibold ${
                 (cashSurveillance?.cashPercentage || 0) > 5 ? 'text-rose-400' : 'text-emerald-400'
@@ -721,8 +752,13 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
           {/* Optional Chapter VI-A Deductions */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Chapter VI-A Deductions (Old Regime only e.g., 80C, 80D)
+            <label className="text-xs font-medium text-slate-300 mb-1 flex items-center">
+              <span>Chapter VI-A Deductions (Old Regime only)</span>
+              <FieldTooltip
+                section="Chapter VI-A Rules"
+                title="Deductions Allowed in Old Regime Only"
+                rule="Tax-saving investments under Sec 80C (EPF/ELSS up to ₹1.5L), 80D (health insurance), 80E (education loan), and 80G. Note: Chapter VI-A deductions are NOT allowed under the New Tax Regime (Sec 115BAC)."
+              />
             </label>
             <input
               type="number"
