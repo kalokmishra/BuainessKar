@@ -1,207 +1,174 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { services, UserProfile } from '../services';
 
 export interface User {
   id: string;
   name: string;
-  identifier: string; // Email ID or Mobile Number
-  type: 'email' | 'mobile';
+  identifier: string; // Email ID, Mobile Number, or Google Account
+  email?: string;
+  photoURL?: string;
+  provider?: 'firebase' | 'local' | 'demo';
+  type?: 'email' | 'mobile' | 'google';
   createdAt: string;
 }
 
 interface AuthContextType {
   currentUser: User | null;
-  login: (identifier: string, pass: string) => { success: boolean; message?: string };
-  signup: (name: string, identifier: string, pass: string) => { success: boolean; message?: string };
-  changePassword: (currentPass: string, newPass: string) => { success: boolean; message?: string };
-  logout: () => void;
+  activeProvider: string;
+  signInWithGoogle: () => Promise<{ success: boolean; message?: string }>;
+  login: (identifier: string, pass: string) => Promise<{ success: boolean; message?: string }>;
+  signup: (name: string, identifier: string, pass: string) => Promise<{ success: boolean; message?: string }>;
+  changePassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  isLoading: boolean;
 }
-
-const STORAGE_USERS_KEY = 'tax_app_registered_users_v1';
-const STORAGE_SESSION_KEY = 'tax_app_active_session_v1';
-
-// Default demo accounts for instant testing
-const INITIAL_DEMO_USERS = [
-  {
-    id: 'usr_demo_1',
-    name: 'Rahul Sharma',
-    identifier: 'rahul@taxpro.in',
-    type: 'email' as const,
-    passwordHash: 'password123',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'usr_demo_2',
-    name: 'Priya Patel',
-    identifier: '9876543210',
-    type: 'mobile' as const,
-    passwordHash: 'password123',
-    createdAt: new Date().toISOString(),
-  },
-];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize stored users and active session on load
+  // Subscribe to auth state changes from active provider (Firebase / Local)
   useEffect(() => {
-    try {
-      const storedUsersRaw = localStorage.getItem(STORAGE_USERS_KEY);
-      if (!storedUsersRaw) {
-        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(INITIAL_DEMO_USERS));
-      }
+    const unsubscribe = services.auth.onAuthStateChanged(async (profile: UserProfile | null) => {
+      if (profile) {
+        const userObj: User = {
+          id: profile.id,
+          name: profile.name,
+          identifier: profile.identifier || profile.email,
+          email: profile.email,
+          photoURL: profile.photoURL,
+          provider: profile.provider,
+          type: profile.provider === 'firebase' ? 'google' : profile.email.includes('@') ? 'email' : 'mobile',
+          createdAt: profile.createdAt,
+        };
+        setCurrentUser(userObj);
 
-      const activeSessionRaw = localStorage.getItem(STORAGE_SESSION_KEY);
-      if (activeSessionRaw) {
-        setCurrentUser(JSON.parse(activeSessionRaw));
+        // Sync user profile with database provider (Firestore)
+        try {
+          await services.db.saveUserProfile(profile);
+        } catch (e) {
+          console.warn('Failed to sync user profile to database:', e);
+        }
       } else {
         setCurrentUser(null);
       }
-    } catch (err) {
-      console.error('Error initializing AuthState:', err);
-    }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = (identifier: string, pass: string) => {
-    const cleanId = identifier.trim().toLowerCase();
+  const signInWithGoogle = async (): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
     try {
-      const storedUsersRaw = localStorage.getItem(STORAGE_USERS_KEY);
-      const usersList = storedUsersRaw ? JSON.parse(storedUsersRaw) : INITIAL_DEMO_USERS;
-
-      const user = usersList.find(
-        (u: any) => u.identifier.trim().toLowerCase() === cleanId && u.passwordHash === pass
-      );
-
-      if (user) {
+      const res = await services.auth.signInWithGoogle();
+      if (res.success && res.user) {
         const userObj: User = {
-          id: user.id,
-          name: user.name,
-          identifier: user.identifier,
-          type: user.type,
-          createdAt: user.createdAt,
+          id: res.user.id,
+          name: res.user.name,
+          identifier: res.user.email,
+          email: res.user.email,
+          photoURL: res.user.photoURL,
+          provider: 'firebase',
+          type: 'google',
+          createdAt: res.user.createdAt,
         };
         setCurrentUser(userObj);
-        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(userObj));
+        try {
+          await services.db.saveUserProfile(res.user);
+        } catch (e) {
+          console.warn('DB profile sync error:', e);
+        }
         return { success: true };
-      } else {
-        return {
-          success: false,
-          message: 'Invalid email/mobile number or password. Please try again.',
-        };
       }
-    } catch (e: any) {
-      return { success: false, message: e.message || 'Login failed.' };
+      return { success: false, message: res.error || 'Google Sign-in failed.' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Google Sign-in failed.' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const signup = (name: string, identifier: string, pass: string) => {
-    const cleanId = identifier.trim().toLowerCase();
-    const isEmail = cleanId.includes('@');
-    const isMobile = /^[0-9]{10}$/.test(cleanId);
-
-    if (!isEmail && !isMobile) {
-      return {
-        success: false,
-        message: 'Please enter a valid email address (e.g. user@domain.com) or 10-digit Indian mobile number.',
-      };
-    }
-
-    if (!pass || pass.length < 4) {
-      return { success: false, message: 'Password must be at least 4 characters long.' };
-    }
-
+  const login = async (identifier: string, pass: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
     try {
-      const storedUsersRaw = localStorage.getItem(STORAGE_USERS_KEY);
-      const usersList = storedUsersRaw ? JSON.parse(storedUsersRaw) : INITIAL_DEMO_USERS;
-
-      const existing = usersList.find(
-        (u: any) => u.identifier.trim().toLowerCase() === cleanId
-      );
-
-      if (existing) {
-        return {
-          success: false,
-          message: 'An account with this Email ID or Mobile Number already exists. Please Log In.',
+      const res = await services.auth.signInWithCredentials(identifier, pass);
+      if (res.success && res.user) {
+        const userObj: User = {
+          id: res.user.id,
+          name: res.user.name,
+          identifier: res.user.identifier || res.user.email,
+          email: res.user.email,
+          provider: res.user.provider,
+          type: res.user.email.includes('@') ? 'email' : 'mobile',
+          createdAt: res.user.createdAt,
         };
+        setCurrentUser(userObj);
+        try {
+          await services.db.saveUserProfile(res.user);
+        } catch (e) {
+          console.warn('DB profile sync error:', e);
+        }
+        return { success: true };
       }
-
-      const newUser = {
-        id: `usr_${Date.now()}`,
-        name: name.trim() || 'Assessee Taxpayer',
-        identifier: cleanId,
-        type: isEmail ? ('email' as const) : ('mobile' as const),
-        passwordHash: pass,
-        createdAt: new Date().toISOString(),
-      };
-
-      const updatedUsers = [...usersList, newUser];
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
-
-      const sessionObj: User = {
-        id: newUser.id,
-        name: newUser.name,
-        identifier: newUser.identifier,
-        type: newUser.type,
-        createdAt: newUser.createdAt,
-      };
-
-      setCurrentUser(sessionObj);
-      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionObj));
-
-      return { success: true };
-    } catch (e: any) {
-      return { success: false, message: e.message || 'Registration failed.' };
+      return { success: false, message: res.error || 'Invalid credentials.' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const changePassword = (currentPass: string, newPass: string) => {
-    if (!currentUser) {
-      return { success: false, message: 'You must be logged in to change your password.' };
-    }
-
-    if (!currentPass) {
-      return { success: false, message: 'Please enter your current password.' };
-    }
-
-    if (!newPass || newPass.length < 4) {
-      return { success: false, message: 'New password must be at least 4 characters long.' };
-    }
-
+  const signup = async (name: string, identifier: string, pass: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
     try {
-      const storedUsersRaw = localStorage.getItem(STORAGE_USERS_KEY);
-      const usersList = storedUsersRaw ? JSON.parse(storedUsersRaw) : INITIAL_DEMO_USERS;
-
-      const userIndex = usersList.findIndex(
-        (u: any) =>
-          u.id === currentUser.id ||
-          u.identifier.trim().toLowerCase() === currentUser.identifier.trim().toLowerCase()
-      );
-
-      if (userIndex === -1) {
-        return { success: false, message: 'User account not found.' };
+      const res = await services.auth.signUpWithCredentials(name, identifier, pass);
+      if (res.success && res.user) {
+        const userObj: User = {
+          id: res.user.id,
+          name: res.user.name,
+          identifier: res.user.identifier || res.user.email,
+          email: res.user.email,
+          provider: res.user.provider,
+          type: res.user.email.includes('@') ? 'email' : 'mobile',
+          createdAt: res.user.createdAt,
+        };
+        setCurrentUser(userObj);
+        try {
+          await services.db.saveUserProfile(res.user);
+        } catch (e) {
+          console.warn('DB profile sync error:', e);
+        }
+        return { success: true };
       }
-
-      if (usersList[userIndex].passwordHash !== currentPass) {
-        return { success: false, message: 'Incorrect current password. Please try again.' };
-      }
-
-      usersList[userIndex].passwordHash = newPass;
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(usersList));
-
-      return { success: true, message: 'Password updated successfully!' };
-    } catch (e: any) {
-      return { success: false, message: e.message || 'Failed to update password.' };
+      return { success: false, message: res.error || 'Signup failed.' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
+  const changePassword = async (currentPass: string, newPass: string): Promise<{ success: boolean; message?: string }> => {
+    return services.auth.changePassword(currentPass, newPass);
+  };
+
+  const logout = async (): Promise<void> => {
+    await services.auth.logout();
     setCurrentUser(null);
-    localStorage.removeItem(STORAGE_SESSION_KEY);
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, signup, changePassword, logout }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        activeProvider: services.auth.providerName,
+        signInWithGoogle,
+        login,
+        signup,
+        changePassword,
+        logout,
+        isLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

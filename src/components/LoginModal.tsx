@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Mail,
-  Phone,
   Lock,
   User as UserIcon,
   ArrowRight,
@@ -10,12 +9,13 @@ import {
   CheckCircle2,
   HelpCircle,
   X,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
 
 export const LoginModal: React.FC = () => {
-  const { login, signup } = useAuth();
+  const { login, signup, signInWithGoogle, activeProvider } = useAuth();
 
   const [mode, setMode] = useState<'LOGIN' | 'SIGNUP'>('LOGIN');
   const [identifier, setIdentifier] = useState<string>('');
@@ -24,8 +24,25 @@ export const LoginModal: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleGoogleSignIn = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsGoogleSigningIn(true);
+    try {
+      const res = await signInWithGoogle();
+      if (!res.success) {
+        setErrorMessage(res.message || 'Google Sign-in failed. Please try again.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Google Sign-in failed.');
+    } finally {
+      setIsGoogleSigningIn(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -41,7 +58,7 @@ export const LoginModal: React.FC = () => {
     }
 
     if (mode === 'LOGIN') {
-      const res = login(identifier, password);
+      const res = await login(identifier, password);
       if (!res.success) {
         setErrorMessage(res.message || 'Login failed');
       }
@@ -50,7 +67,7 @@ export const LoginModal: React.FC = () => {
         setErrorMessage('Please enter your full legal name.');
         return;
       }
-      const res = signup(fullName, identifier, password);
+      const res = await signup(fullName, identifier, password);
       if (!res.success) {
         setErrorMessage(res.message || 'Registration failed');
       } else {
@@ -59,11 +76,11 @@ export const LoginModal: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = (demoId: string, demoPass: string) => {
+  const handleDemoLogin = async (demoId: string, demoPass: string) => {
     setIdentifier(demoId);
     setPassword(demoPass);
     setErrorMessage('');
-    const res = login(demoId, demoPass);
+    const res = await login(demoId, demoPass);
     if (!res.success) {
       setErrorMessage(res.message || 'Demo login failed');
     }
@@ -71,11 +88,11 @@ export const LoginModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl text-white relative">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl text-white relative">
         {/* Header Branding */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-1.5">
           <div className="mx-auto flex justify-center">
-            <Logo className="w-16 h-16" showText={false} />
+            <Logo className="w-14 h-14" showText={false} />
           </div>
           <h2 className="text-2xl font-black text-slate-100 flex items-center justify-center gap-1">
             <span>Business</span>
@@ -86,6 +103,44 @@ export const LoginModal: React.FC = () => {
           </p>
         </div>
 
+        {/* Primary Action: Google Sign-in with Firebase Auth */}
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleSigningIn}
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+              />
+            </svg>
+            <span>{isGoogleSigningIn ? 'Connecting with Google...' : 'Continue with Google (Firebase)'}</span>
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-slate-800" />
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+              or use password / demo
+            </span>
+            <div className="flex-1 h-px bg-slate-800" />
+          </div>
+        </div>
+
         {/* Auth Mode Toggle Tabs */}
         <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
           <button
@@ -94,7 +149,7 @@ export const LoginModal: React.FC = () => {
               setMode('LOGIN');
               setErrorMessage('');
             }}
-            className={`flex-1 py-2 font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 font-bold rounded-lg transition-all ${
               mode === 'LOGIN'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -108,7 +163,7 @@ export const LoginModal: React.FC = () => {
               setMode('SIGNUP');
               setErrorMessage('');
             }}
-            className={`flex-1 py-2 font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 font-bold rounded-lg transition-all ${
               mode === 'SIGNUP'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -134,7 +189,7 @@ export const LoginModal: React.FC = () => {
         )}
 
         {/* Main Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {mode === 'SIGNUP' && (
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1">
@@ -147,7 +202,7 @@ export const LoginModal: React.FC = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Rahul Sharma"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-600 outline-none"
                 />
               </div>
             </div>
@@ -164,12 +219,9 @@ export const LoginModal: React.FC = () => {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="user@domain.com OR 9876543210"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-600 outline-none"
               />
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">
-              Enter valid Email ID (e.g. rahul@taxpro.in) or 10-digit mobile number.
-            </p>
           </div>
 
           <div>
@@ -194,13 +246,13 @@ export const LoginModal: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-600 outline-none"
               />
             </div>
           </div>
 
           {showForgotPassword && (
-            <div className="bg-amber-950/80 border border-amber-500/40 p-3.5 rounded-xl text-xs text-amber-200 space-y-2 animate-fade-in">
+            <div className="bg-amber-950/80 border border-amber-500/40 p-3 rounded-xl text-xs text-amber-200 space-y-1.5 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-amber-300">
                   <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
@@ -209,36 +261,28 @@ export const LoginModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(false)}
-                  className="text-amber-400 hover:text-amber-200 p-0.5 cursor-pointer"
-                  title="Close notice"
+                  className="text-amber-400 hover:text-amber-300"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs leading-relaxed text-amber-100">
-                Please contact admin at{' '}
-                <a
-                  href="mailto:contactadmin@businesskar.com"
-                  className="font-bold underline text-amber-300 hover:text-white"
-                >
-                  contactadmin@businesskar.com
-                </a>{' '}
-                to reset your password.
+              <p className="text-[11px] text-amber-300/90 leading-relaxed">
+                For security, contact your tax administrator at <span className="font-mono text-amber-200 font-bold">contactadmin@businesskar.com</span> or sign in directly with Google.
               </p>
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md cursor-pointer"
           >
-            <span>{mode === 'LOGIN' ? 'Sign In to App' : 'Create Account & Sign In'}</span>
+            <span>{mode === 'LOGIN' ? 'Sign In with Password' : 'Create Account'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         {/* Explicit Mode Toggle Footer Link */}
-        <div className="text-center pt-2">
+        <div className="text-center pt-1">
           {mode === 'SIGNUP' ? (
             <button
               type="button"
@@ -267,32 +311,36 @@ export const LoginModal: React.FC = () => {
         </div>
 
         {/* Quick Demo Credentials */}
-        <div className="pt-3 border-t border-slate-800 space-y-2">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            Quick Demo Credentials:
+        <div className="pt-2.5 border-t border-slate-800 space-y-1.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3 text-emerald-400" />
+            Instant Demo Profiles:
           </span>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               type="button"
               onClick={() => handleDemoLogin('rahul@taxpro.in', 'password123')}
-              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2.5 rounded-xl text-left transition-all space-y-0.5"
+              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-xl text-left transition-all space-y-0.5 cursor-pointer"
             >
-              <span className="text-emerald-400 font-bold block text-[11px]">Email Demo</span>
-              <span className="text-[10px] text-slate-300 block font-mono">rahul@taxpro.in</span>
-              <span className="text-[10px] text-slate-500 block">Pass: password123</span>
+              <span className="text-emerald-400 font-bold block text-[11px]">Rahul (IT Consultant)</span>
+              <span className="text-[10px] text-slate-400 block font-mono">rahul@taxpro.in</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleDemoLogin('9876543210', 'password123')}
-              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2.5 rounded-xl text-left transition-all space-y-0.5"
+              className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-xl text-left transition-all space-y-0.5 cursor-pointer"
             >
-              <span className="text-emerald-400 font-bold block text-[11px]">Mobile Demo</span>
-              <span className="text-[10px] text-slate-300 block font-mono">9876543210</span>
-              <span className="text-[10px] text-slate-500 block">Pass: password123</span>
+              <span className="text-emerald-400 font-bold block text-[11px]">Priya (Retail Trader)</span>
+              <span className="text-[10px] text-slate-400 block font-mono">9876543210</span>
             </button>
           </div>
+        </div>
+
+        {/* Security & Provider Badge */}
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Modular Auth Provider: <strong className="text-emerald-400 uppercase font-mono">{activeProvider}</strong> (Firestore Sync Active)</span>
         </div>
       </div>
     </div>

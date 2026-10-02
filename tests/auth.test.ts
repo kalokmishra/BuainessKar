@@ -93,6 +93,75 @@ describe('User Authentication & Session Engine', () => {
     const loginWithNewPass = authenticateUser(userDb, 'rahul@taxpro.in', 'newpass456');
     expect(loginWithNewPass.success).toBe(true);
   });
+
+  describe('Modular Services & Provider Abstraction', () => {
+    it('supports Google Sign-In and session management via Auth service', async () => {
+      const { LocalAuthService } = await import('../src/services/local/localAuthService');
+      const auth = new LocalAuthService();
+
+      const res = await auth.signInWithGoogle();
+      expect(res.success).toBe(true);
+      expect(res.user).toBeDefined();
+      expect(res.user?.email).toBe('user@gmail.com');
+
+      expect(auth.getCurrentUser()?.email).toBe('user@gmail.com');
+
+      await auth.logout();
+      expect(auth.getCurrentUser()).toBeNull();
+    });
+
+    it('persists and subscribes to tax data via Database service', async () => {
+      const { LocalDatabaseService } = await import('../src/services/local/localDatabaseService');
+      const db = new LocalDatabaseService();
+
+      const sampleTaxData: any = {
+        grossReceipts: 5000000,
+        cashReceipts: 150000,
+        activityType: 'PROFESSION',
+      };
+
+      await db.saveTaxData('test_user_1', sampleTaxData);
+      const retrieved = await db.getTaxData('test_user_1');
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.grossReceipts).toBe(5000000);
+
+      // Subscription check
+      let subscribedValue: any = null;
+      const unsub = db.subscribeTaxData('test_user_1', (data) => {
+        subscribedValue = data;
+      });
+
+      expect(subscribedValue?.grossReceipts).toBe(5000000);
+      unsub();
+    });
+
+    it('allows runtime switching of underlying auth & database providers', async () => {
+      const { services } = await import('../src/services/index');
+      expect(services.auth.providerName).toBe('firebase');
+      expect(services.db.providerName).toBe('firestore');
+
+      // Switch to local provider
+      services.setProvider('local');
+      expect(services.auth.providerName).toBe('local');
+      expect(services.db.providerName).toBe('local');
+
+      // Switch back to firebase
+      services.setProvider('firebase');
+      expect(services.auth.providerName).toBe('firebase');
+      expect(services.db.providerName).toBe('firestore');
+    });
+
+    it('conforms to Firestore error reporting contract', async () => {
+      const { handleFirestoreError, OperationType } = await import('../src/services/firebase/firebaseConfig');
+      expect(typeof handleFirestoreError).toBe('function');
+      expect(OperationType.WRITE).toBe('write');
+      expect(OperationType.GET).toBe('get');
+
+      expect(() => {
+        handleFirestoreError(new Error('Missing or insufficient permissions'), OperationType.GET, 'users/123');
+      }).toThrow();
+    });
+  });
 });
 
 // Helper logic mirroring AuthContext

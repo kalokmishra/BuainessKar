@@ -106,14 +106,14 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Handles basic exemption set-off for resident individuals if normal slab income is below the basic exemption threshold.
   - Compares New vs Old Tax Regime total tax liabilities and generates regime recommendation with net tax savings.
 
-### Module 9: `AuthContext.tsx`, `LoginModal.tsx` & `ChangePasswordModal.tsx`
+### Module 9: Modular Services, Firebase Auth & Firestore Persistence (`/src/services/`, `AuthContext.tsx` & `LoginModal.tsx`)
 - **Responsibilities:**
-  - Manages client-side user authentication, session state, and localStorage user records.
-  - Gatekeeps application access via the `LoginModal` overlay when no active user session exists.
-  - Validates Email ID and Indian 10-digit mobile phone numbers with static password checks on login and signup.
-  - Provides in-app password change capabilities (`changePassword`) via `ChangePasswordModal` for logged-in users.
-  - Provides "Forgot password?" admin contact instruction (`contactadmin@businesskar.com`) on the login screen.
-  - Displays interactive user profile dropdown in the global Header with user profile information, Reset Password modal trigger, and logout action.
+  - **Modular Provider Architecture (`/src/services/`):** Implements `IAuthService` and `IDatabaseService` interfaces enabling runtime switching between Firebase, Local/Mock, or future custom providers (Supabase, PostgreSQL).
+  - **Firebase Auth with Google Sign-In (`firebaseAuthService.ts`):** Implements `signInWithPopup(auth, new GoogleAuthProvider())` for secure authentication with Google identity, avatar support, and real-time auth state synchronization (`onAuthStateChanged`).
+  - **Firestore Cloud Data Persistence (`firestoreDatabaseService.ts`):** Syncs user profiles (`/users/{userId}`) and live tax calculation states (`/users/{userId}/taxProfiles/current`) across devices with real-time `onSnapshot` listeners.
+  - **Hardened Security Rules (`firestore.rules`):** Zero-trust ABAC security rules with default-deny safety nets, `isValidId()`, `isValidUser()`, `isValidTaxData()`, and strict `request.auth.uid == userId` checks.
+  - **Statutory Error Handling (`handleFirestoreError`):** Catches Firestore permission failures and formats error payloads conforming strictly to the `FirestoreErrorInfo` schema.
+  - **Local / Demo Account Fallback:** Provides instant testing via demo profiles (`rahul@taxpro.in`, `9876543210`) with zero external network requirement for automated Vitest testing.
 
 ### Module 10: `TaxDataContext.tsx`, `GuidedOnboardingTour.tsx` & `OnboardingPromptBanner.tsx`
 - **Responsibilities:**
@@ -128,14 +128,30 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Provides interactive hover tooltips (`FieldTooltip`) on tax input fields explaining statutory limits, section codes, and calculation formulas.
   - Houses a slide-out Tax Glossary & Concepts drawer (`TaxInfoDrawer`) offering plain-English definitions, real-world examples, and category filtering for non-financial users.
 
-### Module 12: AI Tax Chat Copilot (`aiChatCopilot.ts` & `AIChatPanel.tsx`)
+### Module 12: AI Tax Chat Copilot (`aiChatCopilot.ts`, `indianNumberIdioms.ts` & `AIChatPanel.tsx`)
 - **Responsibilities:**
   - Full-context conversational AI engine powered by **Gemini 3.8 Flash** (`@google/genai`) on the server side (`POST /api/tax/chat`).
+  - **Model & Billing Architecture:** Utilizes Google's `gemini-3.8-flash` LLM hosted via server-side proxy (`/api/tax/chat`). The end user is not billed and requires no API key. Developer credits / Google AI Studio environment provisions the API key via `process.env.GEMINI_API_KEY`. In the absence of an API key or in offline/test environments, an intelligent zero-cost deterministic rule engine seamlessly handles all queries.
+  - **Indian Numerical Idioms Pre-processing Engine (`indianNumberIdioms.ts`):** Mandatory pre-processing stage (STEP 0) that normalizes colloquial shorthand before any calculations or LLM calls:
+    - Normalizes `50k` / `50 k` / `50 hazar` -> `50,000` (₹50,000, never mistaken for ₹50).
+    - Normalizes `5 lakhs` / `5L` / `1.5L` -> `5,00,000` / `1,50,000`.
+    - Normalizes `2cr` / `2.5 crore` -> `2,00,00,000` / `2,50,00,000`.
+    - Injects structured pre-processed entity tables into the LLM system prompt and returns `preprocessedEntities` to render real-time normalization badges in the UI.
+  - **Statutory Gift Exemption Engine (Section 56(2)(x)):** Recognizes transfers/gifts from relatives (mother, father, spouse, siblings, lineal ascendants) and explicitly confirms 100% tax exemption with ₹0 added tax and ₹0 business turnover impact.
   - **Live Profile Context Injection:** Automatically inspects user's active turnover, cash ratio, salary, capital gains, Chapter VI-A deductions, and real-time tax liabilities.
   - **Assists in Adding Entries:** Natural language intent parser for incoming payments, receipts, salary additions, and deductions (80C, 80D, 80CCD1B) with an interactive **"1-Click Apply to Profile"** widget that directly mutates `TaxDataState`.
   - **What-If Analysis Engine:** Runs baseline vs projected tax simulations returning `WhatIfAnalysis` objects detailing before & after taxes, exact ₹ tax savings, and recommended tax regime.
   - **Tax Outlay Minimization:** Formulates tailored legal minimization strategies using Section 87A rebate thresholds, Chapter VI-A deductions, digital receipts under Section 44AD (6% deemed profit), 5% cash surveillance discipline, and Section 211(1)(b) single March 15 advance tax payment privileges.
   - **Deterministic Rule Engine Fallback:** Seamless offline and test-environment operation (`generateDeterministicChatResponse`) guaranteeing 100% calculation reliability without external API dependencies.
+
+### Module 13: Modular Authentication & Database Layer (`src/services/` & Firebase / Cloud Firestore)
+- **Responsibilities:**
+  - Implements abstract interfaces `IAuthService` and `IDatabaseService` (`src/services/types.ts`) guaranteeing complete architectural decoupling from any single cloud backend.
+  - Enables future provider swaps (Supabase, PostgreSQL, Appwrite, AWS Cognito) via singleton Service Registry and runtime switchers `setAuthProvider()` and `setDatabaseProvider()` (`src/services/index.ts`).
+  - **Firebase Auth Service (`firebaseAuthService.ts`):** Supports 1-click Google Sign-in with OAuth popups, email/mobile number credential signup/login, session restoration, and real-time auth state subscription.
+  - **Cloud Firestore Database Service (`firestoreDatabaseService.ts`):** Provides persistent cloud synchronization of user profiles (`/users/{userId}`) and tax states (`/users/{userId}/taxProfiles/current`).
+  - **Local Offline Fallback Provider (`localAuthService.ts` & `localDatabaseService.ts`):** Complete zero-dependency offline fallback ensuring seamless operation in test environments, demo modes, or disconnected network states.
+  - **Security Rules (`firestore.rules`) & Invariants (`security_spec.md`):** Deployed production rules enforcing default-deny, strict user-ownership validation (`request.auth.uid == userId`), path-variable sanitization, and defense against the "Dirty Dozen" malformed payload attacks.
 
 ### Utility 1: `pdfExporter.ts`
 - **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
@@ -153,7 +169,7 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (36 tests across 10 test suites):
+Test coverage includes (46 tests across 10 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).

@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net: Default-deny all document paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validator for User Profile
+    function isValidUser(data, userId) {
+      return data.id is string &&
+             data.id == userId &&
+             data.email is string &&
+             data.email.size() <= 150 &&
+             (!('name' in data) || (data.name is string && data.name.size() <= 100)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500));
+    }
+
+    // Entity validator for Tax Data
+    function isValidTaxData(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.grossReceipts is number &&
+             (!('cashReceipts' in data) || data.cashReceipts is number) &&
+             (!('entityType' in data) || (data.entityType is string && data.entityType.size() <= 50)) &&
+             (!('activityType' in data) || (data.activityType is string && data.activityType.size() <= 20)) &&
+             (!('grossSalary' in data) || data.grossSalary is number) &&
+             (!('rentalIncome' in data) || data.rentalIncome is number) &&
+             (!('stcgEquity' in data) || data.stcgEquity is number) &&
+             (!('ltcgEquity' in data) || data.ltcgEquity is number) &&
+             (!('sec80C' in data) || data.sec80C is number) &&
+             (!('sec80D' in data) || data.sec80D is number) &&
+             (!('sec80CCD1B' in data) || data.sec80CCD1B is number);
+    }
+
+    // Match users collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Blanket reads strictly forbidden
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming(), userId);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming(), userId) &&
+                       incoming().id == existing().id;
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Subcollection for user's tax calculation profiles
+      match /taxProfiles/{profileId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(profileId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(profileId) && isValidTaxData(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(profileId) && isValidTaxData(incoming(), userId) &&
+                         incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(profileId);
+      }
+    }
+  }
+}

@@ -3,21 +3,32 @@
  * Powered by Gemini 3.8 Flash (@google/genai)
  * 
  * Features:
- * 1. Deep context awareness of user's complete profile, income heads, deductions, and tax state.
- * 2. Assists users in adding and updating entries (e.g. gross receipts, cash, salary, capital gains, 80C, 80D, 80CCD1B).
- * 3. Conducts What-If Analyses with live recalculation and scenario comparisons.
- * 4. Always strategizes to minimize the user's legal tax outlay across New vs Old Tax Regimes.
+ * 1. Pre-processes all colloquial Indian numerical idioms (50k, 5 lakhs, 1.5L, 2cr) into exact integers before calculations.
+ * 2. Deep context awareness of user's complete profile, income heads, deductions, and tax state.
+ * 3. Assists users in adding and updating entries (e.g. gross receipts, cash, salary, capital gains, 80C, 80D, 80CCD1B).
+ * 4. Conducts What-If Analyses with live recalculation and scenario comparisons.
+ * 5. Handles statutory exemptions such as Section 56(2)(x) for gifts from relatives.
+ * 6. Always strategizes to minimize the user's legal tax outlay across New vs Old Tax Regimes.
  */
 
 import { GoogleGenAI, Type } from '@google/genai';
 import {
   AIChatCopilotResponse,
+  PreprocessedNumericalEntity,
   WhatIfAnalysis,
 } from './types.js';
 import { calculateComprehensiveTax } from './comprehensiveTax.js';
 import { calculatePresumptiveTax } from './presumptiveTax.js';
 import { evaluateCashSurveillance } from './cashSurveillance.js';
 import { evaluateEligibility } from './eligibility.js';
+import {
+  extractIndianNumericalEntities,
+  preprocessIndianNumericalIdioms,
+  parseIndianAmount,
+  formatINR,
+} from './indianNumberIdioms.js';
+
+export { parseIndianAmount, extractIndianNumericalEntities, preprocessIndianNumericalIdioms };
 
 export interface TaxProfileContext {
   user?: {
@@ -65,8 +76,6 @@ export interface AIChatRequestPayload {
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
   profile: TaxProfileContext;
 }
-
-const formatINR = (val: number): string => `₹${Math.round(val || 0).toLocaleString('en-IN')}`;
 
 /**
  * Computes baseline tax metrics using the multi-head comprehensive tax engine
@@ -147,6 +156,10 @@ export async function processAIChatCopilot(
   const taxData = profile.taxData || ({} as TaxProfileContext['taxData']);
   const baseline = computeBaselineTax(taxData);
 
+  // STEP 0: MANDATORY NUMERICAL IDIOM PRE-PROCESSING STEP
+  // Normalizes colloquial Indian expressions (e.g. '50k', '5 lakhs', '1.5 cr') into exact integers
+  const preprocessed = preprocessIndianNumericalIdioms(message);
+
   const apiKey = typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined;
 
   if (
@@ -172,17 +185,32 @@ export async function processAIChatCopilot(
           reply: {
             type: Type.STRING,
             description:
-              'Crisp, highly helpful markdown advice detailing tax minimization steps, law citations (e.g. Sec 44AD/44ADA, 115BAC, 87A, 80C, 80CCD(1B), 211(1)(b)), and clear rationale.',
+              'Crisp, highly helpful markdown advice detailing tax minimization steps, law citations (e.g. Sec 44AD/44ADA, 115BAC, 87A, 80C, 80CCD(1B), 56(2)(x), 211(1)(b)), and clear rationale.',
           },
           intent: {
             type: Type.STRING,
             description:
               'One of: ASSIST_ENTRY, WHAT_IF_ANALYSIS, TAX_MINIMIZATION, GENERAL_QUERY',
           },
+          preprocessedEntities: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                originalIdiom: { type: Type.STRING },
+                normalizedInteger: { type: Type.NUMBER },
+                formattedINR: { type: Type.STRING },
+                notes: { type: Type.STRING },
+              },
+              required: ['originalIdiom', 'normalizedInteger', 'formattedINR'],
+            },
+            description:
+              'Pre-processed mapping table showing every colloquial idiom from the user message mapped to exact integer rupee values.',
+          },
           suggestedUpdates: {
             type: Type.OBJECT,
             description:
-              'Key-value pairs matching TaxDataState fields to update or add to user profile (e.g. { grossReceipts: 5200000 } or { sec80CCD1B: 50000 }) if user requested an addition or what-if scenario.',
+              'Key-value pairs matching TaxDataState fields to update or add to user profile (e.g. { grossReceipts: 5200000 } or { sec80CCD1B: 50000 }) if user requested an addition or what-if scenario. Do NOT add tax-free gifts from relatives to business receipts!',
             properties: {
               grossReceipts: { type: Type.NUMBER },
               cashReceipts: { type: Type.NUMBER },
@@ -243,7 +271,36 @@ export async function processAIChatCopilot(
       const systemInstruction = `
 You are Businessकर's Chief Tax Strategist & AI Copilot for Indian taxpayers under Section 44AD / 44ADA / Section 115BAC (FY 2026-27, AY 2027-28).
 
-YOUR MANDATE:
+================================================================================
+CRITICAL STEP 0: MANDATORY NUMERICAL IDIOM PRE-PROCESSING STEP
+================================================================================
+All user queries undergo an explicit pre-processing step to map common Indian financial shorthand and numerical idioms into exact integer values before any calculation:
+- "50k", "50 k", "50K", "50 hazar", "50 thousand" => Exactly 50,000 (Fifty Thousand Rupees, ₹50,000). CRITICAL: NEVER parse or consider this as ₹50!
+- "5L", "5 lakh", "5 lakhs", "5 lac", "5 lacs" => Exactly 5,00,000 (Five Lakh Rupees, ₹5,00,000). CRITICAL: NEVER parse as ₹5 or 500!
+- "1.5L", "1.5 lakh", "1.5 lakhs" => Exactly 1,50,000 (One Lakh Fifty Thousand Rupees, ₹1,50,000).
+- "2cr", "2 cr", "2 crore", "2.5 crores" => Exactly 2,00,00,000 / 2,50,00,000 (Two Crore / 2.5 Crore Rupees).
+
+PRE-PROCESSED NUMERICAL ENTITIES EXTRACTED FROM CURRENT MESSAGE:
+${preprocessed.markdownMappingTable}
+
+MANDATORY RULES FOR PRE-PROCESSED ENTITIES:
+1. Always base all computations, tax analysis, and suggested updates on the exact integer numbers in the table above.
+2. Return the preprocessed entities in the 'preprocessedEntities' field of your response so the user sees explicit confirmation.
+
+================================================================================
+STATUTORY GIFT EXEMPTIONS — SECTION 56(2)(x) OF INCOME TAX ACT
+================================================================================
+- Any sum of money received as a gift from a defined "relative" (Mother, Father, Spouse, Brother, Sister, Lineal ascendants/descendants) is 100% EXEMPT FROM INCOME TAX without any monetary ceiling.
+- It is NOT business/professional turnover (under Section 44AD/44ADA) and NOT taxable under "Other Sources".
+- If the user reports receiving money from their mother/father/spouse/relative (e.g., "i received 50k from my mother"):
+  * Confirm that the amount is ₹50,000 (Fifty Thousand Rupees, not ₹50).
+  * State clearly that under Section 56(2)(x), this is 100% TAX-FREE and adds ₹0 to their tax liability.
+  * DO NOT add it to business turnover or gross receipts in 'suggestedUpdates'.
+  * Advise maintaining banking records (UPI/NEFT/IMPS) as good practice.
+
+================================================================================
+YOUR CORE MANDATES
+================================================================================
 1. Always aim at minimizing the taxpayer's overall legal tax outlay.
 2. Assist user in adding new entries or adjusting their tax profile (e.g. adding newly received invoices, adjusting cash turnover, adding salary, equity gains, deductions under Section 80C, 80D, 80CCD(1B) NPS).
    - When the user asks to add or record an entry, provide the exact updated values in 'suggestedUpdates' so they can apply it in 1-click!
@@ -270,6 +327,10 @@ Active Taxpayer Profile Snapshot:
 - Currently Recommended Regime: ${baseline.recommendedRegime} (Tax: ₹${baseline.minTax.toLocaleString('en-IN')})
 `;
 
+      const userMessageContent = preprocessed.entities.length > 0
+        ? `${message}\n\n[System Pre-processor: Numerical idioms detected: ${preprocessed.entities.map(e => `"${e.originalIdiom}" = ${e.formattedINR} (${e.normalizedInteger})`).join(', ')}]`
+        : message;
+
       const contents = [
         ...history.slice(-6).map((h) => ({
           role: h.role,
@@ -277,7 +338,7 @@ Active Taxpayer Profile Snapshot:
         })),
         {
           role: 'user',
-          parts: [{ text: message }],
+          parts: [{ text: userMessageContent }],
         },
       ];
 
@@ -286,7 +347,7 @@ Active Taxpayer Profile Snapshot:
         contents,
         config: {
           systemInstruction,
-          temperature: 0.3,
+          temperature: 0.2,
           responseMimeType: 'application/json',
           responseSchema,
         },
@@ -295,6 +356,9 @@ Active Taxpayer Profile Snapshot:
       if (response.text) {
         const parsed = JSON.parse(response.text.trim()) as AIChatCopilotResponse;
         if (parsed && parsed.reply) {
+          if (!parsed.preprocessedEntities || parsed.preprocessedEntities.length === 0) {
+            parsed.preprocessedEntities = preprocessed.entities;
+          }
           return parsed;
         }
       }
@@ -316,6 +380,11 @@ export function generateDeterministicChatResponse(
   baseline: ReturnType<typeof computeBaselineTax>,
   userName?: string
 ): AIChatCopilotResponse {
+  // Pre-process Indian numerical idioms
+  const preprocessed = preprocessIndianNumericalIdioms(message);
+  const entities = preprocessed.entities;
+  const primaryEntity = entities.length > 0 ? entities[0] : null;
+
   const lower = message.toLowerCase();
 
   // Helper to test a what-if scenario with simulated updates
@@ -339,10 +408,62 @@ export function generateDeterministicChatResponse(
     return { simulated, whatIf, updatedTaxData };
   };
 
+  // 0. Gifts from Relatives (Mother, Father, Spouse, Brother, Sister) - Section 56(2)(x)
+  const isRelativeMentioned =
+    lower.includes('mother') ||
+    lower.includes('mom') ||
+    lower.includes('father') ||
+    lower.includes('dad') ||
+    lower.includes('parent') ||
+    lower.includes('brother') ||
+    lower.includes('sister') ||
+    lower.includes('spouse') ||
+    lower.includes('wife') ||
+    lower.includes('husband') ||
+    lower.includes('relative');
+
+  const isGiftContext =
+    lower.includes('received') ||
+    lower.includes('gift') ||
+    lower.includes('got') ||
+    lower.includes('sent') ||
+    lower.includes('transferred') ||
+    lower.includes('gave');
+
+  if (isRelativeMentioned && isGiftContext) {
+    const extractedAmount = primaryEntity ? primaryEntity.normalizedInteger : (parseIndianAmount(message) || 50000);
+    const formattedAmount = primaryEntity ? primaryEntity.formattedINR : formatINR(extractedAmount);
+    const idiomUsed = primaryEntity ? primaryEntity.originalIdiom : '50k';
+
+    const relationName =
+      lower.includes('mother') || lower.includes('mom')
+        ? 'mother'
+        : lower.includes('father') || lower.includes('dad')
+        ? 'father'
+        : lower.includes('spouse') || lower.includes('wife') || lower.includes('husband')
+        ? 'spouse'
+        : lower.includes('brother')
+        ? 'brother'
+        : lower.includes('sister')
+        ? 'sister'
+        : 'relative';
+
+    return {
+      reply: `### 🎁 Tax-Exempt Gift from Relative (Section 56(2)(x))\n\nUnder Section 56(2)(x) of the Indian Income Tax Act, any sum of money received as a gift from a **relative** (which specifically includes your **${relationName}**) is **100% EXEMPT FROM INCOME TAX without any upper monetary limit**.\n\n### ⚖️ Tax Outlay & Compliance Analysis:\n- **Colloquial Input Recognized**: \`${idiomUsed}\` mapped to **${formattedAmount}** (${extractedAmount.toLocaleString('en-IN')} Rupees, NOT ₹50)\n- **Impact on Gross Turnover**: **₹0** (This is a non-taxable personal family gift, NOT freelance/business turnover under Section 44ADA or 44AD).\n- **Tax Liability Added**: **₹0 (Zero Additional Tax)**.\n- **Action Required**: You do **not** need to add this to your business turnover, nor do you pay any tax on it. Ensure the money was transferred via banking channels (UPI, NEFT, IMPS, or bank transfer) so you retain clear source documentation if ever audited.\n\nYour active business turnover remains **${formatINR(taxData.grossReceipts || 0)}**, and your current minimum tax liability remains **${formatINR(baseline.minTax)}**.`,
+      intent: 'TAX_MINIMIZATION',
+      preprocessedEntities: entities,
+      quickFollowUps: [
+        'What if I receive money from a friend?',
+        'How can I minimize tax on my actual freelance turnover?',
+        'Check cash receipts surveillance limit',
+      ],
+    };
+  }
+
   // 1. NPS / 80CCD(1B) What-If or Entry
   if (lower.includes('nps') || lower.includes('80ccd') || lower.includes('tier 1')) {
-    const amountMatch = message.match(/(?:₹|rs\.?|inr)?\s*(\d+[\d,]*)/i);
-    const amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 50000;
+    const extracted = primaryEntity ? primaryEntity.normalizedInteger : parseIndianAmount(message);
+    const amount = extracted !== null ? extracted : 50000;
     const cappedNps = Math.min(amount, 50000);
 
     const { simulated, whatIf } = testScenario(
@@ -361,6 +482,7 @@ export function generateDeterministicChatResponse(
       intent: 'WHAT_IF_ANALYSIS',
       suggestedUpdates: { sec80CCD1B: cappedNps },
       whatIf,
+      preprocessedEntities: entities,
       quickFollowUps: [
         `Apply ${formatINR(cappedNps)} NPS deduction to my profile`,
         'What about Section 80D health insurance?',
@@ -376,8 +498,8 @@ export function generateDeterministicChatResponse(
     lower.includes('received') ||
     (lower.includes('add') && (lower.includes('receipt') || lower.includes('turnover') || lower.includes('revenue') || lower.includes('income')))
   ) {
-    const amountMatch = message.match(/(?:₹|rs\.?|inr)?\s*(\d+[\d,]*)/i);
-    const addedAmount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 350000;
+    const extracted = primaryEntity ? primaryEntity.normalizedInteger : parseIndianAmount(message);
+    const addedAmount = extracted !== null ? extracted : 350000;
     const isCash = lower.includes('cash');
 
     const newGross = (taxData.grossReceipts || 0) + addedAmount;
@@ -396,6 +518,7 @@ export function generateDeterministicChatResponse(
       intent: 'ASSIST_ENTRY',
       suggestedUpdates: { grossReceipts: newGross, cashReceipts: newCash },
       whatIf,
+      preprocessedEntities: entities,
       quickFollowUps: [
         'Apply these updated turnover numbers',
         'How can I minimize tax on this new turnover?',
@@ -406,8 +529,8 @@ export function generateDeterministicChatResponse(
 
   // 3. Health Insurance / Section 80D
   if (lower.includes('80d') || lower.includes('health insurance') || lower.includes('mediclaim')) {
-    const amountMatch = message.match(/(?:₹|rs\.?|inr)?\s*(\d+[\d,]*)/i);
-    const amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 25000;
+    const extracted = primaryEntity ? primaryEntity.normalizedInteger : parseIndianAmount(message);
+    const amount = extracted !== null ? extracted : 25000;
     const capped80D = Math.min(amount, 100000);
 
     const { simulated, whatIf } = testScenario(
@@ -421,6 +544,7 @@ export function generateDeterministicChatResponse(
       intent: 'WHAT_IF_ANALYSIS',
       suggestedUpdates: { sec80D: capped80D },
       whatIf,
+      preprocessedEntities: entities,
       quickFollowUps: [
         `Apply ${formatINR(capped80D)} 80D claim to profile`,
         'What about 80CCD(1B) NPS?',
@@ -438,6 +562,7 @@ export function generateDeterministicChatResponse(
     return {
       reply: `### ⚖️ Tax Regime Comparison (FY 2026-27 / AY 2027-28)\n\n| Parameter | New Tax Regime (Sec 115BAC) | Old Tax Regime |\n| :--- | :--- | :--- |\n| **Total Tax Liability** | **${formatINR(newTax)}** | **${formatINR(oldTax)}** |\n| **Effective Tax Rate** | ${baseline.result.newRegime.effectiveTaxRateOnTotalIncome}% | ${baseline.result.oldRegime.effectiveTaxRateOnTotalIncome}% |\n| **Deductions Applied** | Nil (Standardized Slabs) | ${formatINR(baseline.totalDeductions)} |\n| **Section 87A Rebate** | Full rebate up to ₹7L income | Full rebate up to ₹5L income |\n\n🎯 **Optimal Recommendation**: Choose the **${baseline.recommendedRegime} Tax Regime** to save **${formatINR(diff)}**.\n\n*Statutory Note:* Under presumptive taxation (Sec 44AD/44ADA), New Regime is typically superior unless your Chapter VI-A deductions exceed ₹3.75 - ₹4 Lakhs.`,
       intent: 'TAX_MINIMIZATION',
+      preprocessedEntities: entities,
       quickFollowUps: [
         'How can I bring my tax to zero?',
         'Run what-if with ₹50,000 in NPS',
@@ -453,6 +578,7 @@ export function generateDeterministicChatResponse(
   return {
     reply: `### 🎯 Tax Minimization Masterplan for ${userName || 'Your Profile'}\n\nBased on your active turnover of **${formatINR(turnover)}**, here is how to drive your tax outlay to the absolute legal minimum:\n\n1. **Lock into the ${baseline.recommendedRegime} Regime**: Yields a net tax liability of **${formatINR(baseline.minTax)}** (saving ${formatINR(baseline.result.taxSavings)} vs alternate regime).\n2. **Preserve Section 44AD/44ADA Presumptive Relief**: By deeming 50% profit (or 6% digital for 44AD), the remaining 50% to 94% is deemed business expenses without books of accounts (Sec 44AA) or audit (Sec 44AB).\n3. **Maintain Digital Banking Receipts**: Keep cash below 5.0% (currently **${baseline.cashSurveillance.cashPercentage.toFixed(1)}%**) to avoid triggering mandatory tax audit.\n4. **Pay Single Advance Tax by March 15**: Presumptive taxpayers enjoy Section 211(1)(b) single-installment privilege—pay 100% on or before 15th March 2027 to avoid all Section 234C interest penalties.\n5. **File GST LUT for Foreign Invoices**: If billing clients abroad, file Letter of Undertaking (LUT) to export services at 0% IGST.\n\nWould you like to test a **what-if scenario** (e.g. adding NPS, adjusting turnover, or adding deductions)?`,
     intent: 'TAX_MINIMIZATION',
+    preprocessedEntities: entities,
     quickFollowUps: [
       'What if I invest ₹50,000 in NPS?',
       'Add new invoice of ₹4,00,000',

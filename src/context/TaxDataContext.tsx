@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { EntityType, ProfessionCategory, BusinessCategory } from '../engine/types';
+import { useAuth } from './AuthContext';
+import { services } from '../services';
 
 export interface TaxDataState {
   // Section 1: Entity & Presumptive Primary Income
@@ -162,6 +164,8 @@ interface TaxDataContextType {
 const TaxDataContext = createContext<TaxDataContextType | undefined>(undefined);
 
 export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUser } = useAuth();
+
   const [taxData, setTaxData] = useState<TaxDataState>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_TAX_DATA);
@@ -185,6 +189,23 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return false;
     }
   });
+
+  // Subscribe to user tax data from database provider (Firestore / Local)
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    let isMounted = true;
+    const unsubscribe = services.db.subscribeTaxData(currentUser.id, (cloudData) => {
+      if (isMounted && cloudData) {
+        setTaxData(cloudData);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [currentUser?.id]);
 
   useEffect(() => {
     try {
@@ -210,6 +231,14 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const sum80TTA = Math.min(next.sec80TTA || 0, 10000);
         next.chapterVIADeductions = sum80C + sum80D + sum80CCD + sum80TTA;
       }
+
+      // Persist to database provider (Firestore / Local)
+      if (currentUser?.id) {
+        services.db.saveTaxData(currentUser.id, next).catch((err) => {
+          console.warn('Database saveTaxData warning:', err);
+        });
+      }
+
       return next;
     });
   };

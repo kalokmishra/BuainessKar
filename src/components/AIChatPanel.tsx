@@ -122,6 +122,7 @@ export const AIChatPanel: React.FC = () => {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             suggestedUpdates: json.data.suggestedUpdates,
             whatIf: json.data.whatIf,
+            preprocessedEntities: json.data.preprocessedEntities,
           };
           setMessages((prev) => [...prev, assistantMessage]);
           return;
@@ -496,6 +497,30 @@ export const AIChatPanel: React.FC = () => {
                   ) : (
                     <>
                       {renderMessageContent(msg.content)}
+
+                      {/* Pre-processed Numerical Idioms Badge */}
+                      {msg.preprocessedEntities && msg.preprocessedEntities.length > 0 && (
+                        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 space-y-1.5 mt-2">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
+                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                            <span>Indian Financial Idioms Pre-processed:</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {msg.preprocessedEntities.map((entity, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 bg-slate-950 text-slate-300 border border-emerald-500/30 rounded-lg px-2 py-0.5 text-[10px] font-mono"
+                                title={entity.notes || `Mapped ${entity.originalIdiom} to ${entity.formattedINR}`}
+                              >
+                                <span className="text-slate-400">{entity.originalIdiom}</span>
+                                <ArrowRight className="w-2.5 h-2.5 text-emerald-400" />
+                                <span className="text-emerald-400 font-bold">{entity.formattedINR}</span>
+                                <span className="text-[9px] text-slate-400 font-sans">({entity.normalizedInteger.toLocaleString('en-IN')})</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {/* What-If Analysis Scenario Card */}
                       {msg.whatIf && (

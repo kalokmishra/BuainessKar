@@ -56,17 +56,27 @@
     - Aggregates multi-head income across Salary (net of Salaried Standard Deduction ₹75,000 New / ₹50,000 Old), Freelance Presumptive Business/Profession (Sec 44AD/44ADA), Capital Gains (STCG Sec 111A at 20%, LTCG Sec 112A at 12.5% above ₹1.25L exemption, LTCG Sec 112), and Other Income.
     - Provides a comprehensive side-by-side tax liability overview comparing New vs Old Tax Regimes with basic exemption set-off and Section 87A rebate rules for FY 2026-27 (AY 2027-28).
 
-13. **User Authentication & Session Management (`/src/context/AuthContext.tsx`, `/src/components/LoginModal.tsx` & `/src/components/ChangePasswordModal.tsx`):**
-    - Gatekeeps app access so only authenticated users can access tax calculation features.
-    - Supports user signup and login via Email ID or 10-digit Indian Mobile Number with static password verification and localStorage persistence.
-    - Features top-right user profile dropdown menu (with Reset Password modal trigger and Logout), "Forgot password?" admin contact notice (`contactadmin@businesskar.com`) on the login screen, and automatic window scroll-to-top on tab navigation.
-    - Includes interactive hover-based **Field Tooltips** (`/src/components/FieldTooltip.tsx`) across all calculator inputs and a slide-out **Tax Glossary Info Drawer** (`/src/components/TaxInfoDrawer.tsx`) offering plain-English definitions and section references for non-financial users.
+13. **Modular Authentication & Firestore Database Persistence (`/src/services/`, `/src/context/AuthContext.tsx` & `/src/components/LoginModal.tsx`):**
+    - **Google Sign-In with Firebase Auth:** Secure user identification via Google Sign-In with popup flow (`signInWithPopup`), automatic profile syncing, and real-time session tracking.
+    - **Firestore Cloud Data Persistence:** Automatically syncs and persists user profiles (`/users/{userId}`) and comprehensive tax calculation states (`/users/{userId}/taxProfiles/current`) across browser sessions and devices with real-time snapshot listeners.
+    - **Modular Service Abstraction (`/src/services/`):** Clean separation of concerns with `IAuthService` and `IDatabaseService` interfaces, making switching to another provider (Supabase, PostgreSQL, Auth0) effortless via runtime configuration (`services.setProvider()`).
+    - **Offline / Local Fallback:** Retains local storage and demo profile fallback so offline development and Vitest automated suites run with zero friction.
+    - **Statutory Security Rules (`firestore.rules`):** Mathematically hardened, default-deny security rules implementing the 8 pillars of Firestore security with path variable hardening, identity integrity, and zero blanket reads.
 
-14. **AI Tax Chat Copilot (`/src/engine/aiChatCopilot.ts` & `/src/components/AIChatPanel.tsx`):**
+14. **AI Tax Chat Copilot (`/src/engine/aiChatCopilot.ts`, `/src/engine/indianNumberIdioms.ts` & `/src/components/AIChatPanel.tsx`):**
     - Full-context AI assistant powered by Gemini 3.8 Flash (`@google/genai`) and server-side `/api/tax/chat` endpoint.
+    - **Indian Numerical Idioms Pre-processing Engine (`/src/engine/indianNumberIdioms.ts`):** Mandatory pre-processing step that normalizes colloquial Indian financial shorthand (e.g. `50k` -> `50,000`, `5 lakhs` -> `5,00,000`, `1.5L` -> `1,50,000`, `2cr` -> `2,00,00,000`, `50 hazar` -> `50,000`) into exact integers before calculations. Solves common LLM shorthand misinterpretation (e.g. never mistaking `50k` for ₹50).
+    - **Statutory Gift Exemption from Relatives (Section 56(2)(x)):** Automatically recognizes money or gifts received from family/relatives (e.g. *"i received 50k from my mother"*) as 100% tax-free without ceiling, confirming ₹0 additional tax and preventing wrongful addition to business turnover.
     - **Assists in Adding Entries:** Natural language recognition for incoming invoices, cash receipts, salary, capital gains, Section 80C, 80D, and Section 80CCD(1B) NPS with an interactive **"1-Click Apply to Profile"** widget.
     - **What-If Analysis Engine:** Automatically computes baseline vs projected tax outlay, exact ₹ tax savings, and recommended tax regime (Old vs New).
-    - **Always Minimizes Tax Outlay:** Formulates strategies to legally drive tax liability to the minimum using Section 87A rebate thresholds, Chapter VI-A deductions, digital receipts under Section 44AD (6% deemed profit), 5% cash surveillance discipline, and Section 211(1)(b) single March 15 advance tax payment privileges.
+    - **Tax Outlay Minimization:** Formulates strategies to legally drive tax liability to the minimum using Section 87A rebate thresholds, Chapter VI-A deductions, digital receipts under Section 44AD (6% deemed profit), 5% cash surveillance discipline, and Section 211(1)(b) single March 15 advance tax payment privileges.
+
+15. **Modular Authentication & Database Layer (`/src/services/` & Firebase / Cloud Firestore):**
+    - **Abstracted Provider Pattern:** Built on `IAuthService` and `IDatabaseService` interfaces with dependency inversion. The UI components are completely decoupled from Firebase, allowing seamless swapping to Supabase, PostgreSQL, or other providers via `setAuthProvider()` and `setDatabaseProvider()`.
+    - **Google 1-Click Sign-In via Firebase Auth:** Secure user identity with Google popup authentication, mobile number/email support, and automatic session persistence.
+    - **Cloud Persistence with Firestore:** Automatically synchronizes user tax profiles (`/users/{userId}/taxProfiles/current`), keeping calculations, business turnover, and multi-head entries safely stored in the cloud.
+    - **Security & Data Invariants (`firestore.rules` & `security_spec.md`):** Default-deny architecture, strict owner authentication checks (`request.auth.uid == userId`), and anti-spoofing validation rules.
+    - **Local & Offline Fallback:** Fully operational offline and demo provider implementation (`LocalAuthService` & `LocalDatabaseService`) ensuring zero disruption in test or offline environments.
 
 ---
 
@@ -87,7 +97,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 36 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
+Runs 46 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -106,6 +116,12 @@ npm start
 ├── INTERN_OPERATIONS_GUIDE.md     # Intern troubleshooting & operational guide
 ├── MULTI_HEAD_TAX_GUIDE.md        # Multi-Head Salary & Capital Gains guide
 ├── USER_GUIDE.md                  # Comprehensive end-user feature guide
+├── MODULAR_FIREBASE_GUIDE.md      # Modular Database, Auth & Provider Switching Guide
+├── AI_CHAT_COPILOT_GUIDE.md       # AI Copilot architecture, billing & idiom guide
+├── security_spec.md               # Firestore access invariants & security test spec
+├── firestore.rules                # Production security rules for Cloud Firestore
+├── firebase-blueprint.json        # Database entity catalog & schema definitions
+├── firebase-applet-config.json    # Firebase client configuration
 ├── README.md                      # Application documentation
 ├── package.json                   # Dependencies & build scripts
 ├── src/
@@ -122,7 +138,18 @@ npm start
 │   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter & validator
 │   │   ├── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
 │   │   ├── comprehensiveTax.ts    # Module 8: Multi-Head Salary & Capital Gains Tax Calculator engine
+│   │   ├── indianNumberIdioms.ts  # Pre-processing engine: normalizes Indian numerical idioms (50k, 5L, 2cr)
 │   │   └── aiChatCopilot.ts       # Module 9: Full-Context AI Tax Copilot (What-If Analysis & Entry Assistant)
+│   ├── services/                  # Modular Auth & Database Provider Layer
+│   │   ├── types.ts               # Abstract IAuthService & IDatabaseService interfaces
+│   │   ├── index.ts               # ServiceRegistry & provider switcher (Firebase / Local)
+│   │   ├── firebase/              # Firebase Auth (Google Sign-In) & Firestore implementation
+│   │   │   ├── firebaseConfig.ts
+│   │   │   ├── firebaseAuthService.ts
+│   │   │   └── firestoreDatabaseService.ts
+│   │   └── local/                 # Local / offline test provider implementation
+│   │       ├── localAuthService.ts
+│   │       └── localDatabaseService.ts
 │   ├── context/
 │   │   ├── AuthContext.tsx        # User Authentication & Session state management
 │   │   └── TaxDataContext.tsx     # Global shared tax data state & onboarding context

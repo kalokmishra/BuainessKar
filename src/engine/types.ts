@@ -416,6 +416,14 @@ export interface WhatIfAnalysis {
   keyTakeaway: string;
 }
 
+export interface PreprocessedNumericalEntity {
+  originalIdiom: string;
+  normalizedInteger: number;
+  formattedINR: string;
+  context?: string;
+  notes?: string;
+}
+
 export interface AIChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -423,6 +431,7 @@ export interface AIChatMessage {
   timestamp: string;
   suggestedUpdates?: Record<string, any>;
   whatIf?: WhatIfAnalysis;
+  preprocessedEntities?: PreprocessedNumericalEntity[];
   isApplied?: boolean;
 }
 
@@ -431,5 +440,6 @@ export interface AIChatCopilotResponse {
   intent: 'ASSIST_ENTRY' | 'WHAT_IF_ANALYSIS' | 'TAX_MINIMIZATION' | 'GENERAL_QUERY';
   suggestedUpdates?: Record<string, any>;
   whatIf?: WhatIfAnalysis;
+  preprocessedEntities?: PreprocessedNumericalEntity[];
   quickFollowUps?: string[];
 }

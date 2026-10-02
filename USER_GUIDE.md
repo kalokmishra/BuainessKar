@@ -41,13 +41,13 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ---
 
-### 2. 🔐 Secure User Authentication & Session Management
-* **Flexible Signup**: Create an account in seconds using either your **Email Address** (e.g. `name@domain.com`) or **10-digit Indian Mobile Number** (`9876543210`) with a static password.
-* **Instant Session Gatekeeper**: Ensures your sensitive financial inputs are private and only accessible during your authenticated session.
-* **Header Profile Dropdown**: Clicking your profile avatar/badge in the top right opens an interactive dropdown menu with your profile information, an in-app **Reset Password** option, and a 1-click **Logout** action.
-* **In-App Password Reset**: Logged-in users can select **"Reset Password"** from the top-right profile dropdown menu to update their account password anytime by entering their current password and setting a new one.
-* **Forgot Password Admin Help**: If a user forgets their password on the login screen, clicking **"Forgot password?"** displays an instant instruction advising them to contact the admin at `contactadmin@businesskar.com`.
-* **Credential-Based Login & Quick Demo Buttons**: Unauthenticated or logged-out visitors must provide valid credentials to log in. Includes 1-click Quick Demo credential buttons (`rahul@taxpro.in` / `password123` or `9876543210` / `password123`) directly on the sign-in modal for instant test-driving.
+### 2. 🔐 Modular Authentication, Google Sign-in & Firestore Cloud Persistence
+* **Google Sign-In with Firebase Auth**: Log in seamlessly with 1 click using **"Continue with Google"**. Supports Google account authentication with automatic avatar and profile synchronization.
+* **Firestore Cloud Persistence**: All your profile information and active tax calculation numbers are automatically saved to your private cloud record in **Firebase Firestore** (`/users/{userId}/taxProfiles/current`). Your numbers sync in real-time across your browser sessions and devices.
+* **Modular Provider Architecture**: The application uses abstract `IAuthService` and `IDatabaseService` interfaces, meaning your underlying database or auth provider can be effortlessly migrated to another provider (Supabase, PostgreSQL, Auth0) anytime as requirements evolve.
+* **Flexible Demo / Credential Accounts**: Also supports instant Email/Mobile demo accounts (`rahul@taxpro.in` / `9876543210`) with local caching so you can explore all features immediately.
+* **Instant Session Gatekeeper**: Ensures your sensitive financial inputs and tax plans are secure, private, and mathematically protected by Firestore security rules.
+* **Header Profile Dropdown & Cloud Status**: Clicking your profile avatar in the top right displays your identity, active provider status, and confirms that **Firestore Data Sync is Active**. Includes a 1-click **Logout** action.
 * **Automatic Top Scroll Navigation**: Switching between navigation tabs automatically returns the window scroll position directly to the top of the page so you can immediately view header metrics and primary content without manual scrolling.
 * **Hover-Based Field Tooltips**: Every input field across the calculator tabs features an interactive tooltip icon (`?`) that displays statutory income tax rules, section numbers, and percentage limits upon hover or touch.
 * **Interactive Tax Glossary Drawer**: Click the **"Tax Glossary"** button in the top header to open a slide-out info drawer providing plain-English definitions, statutory section references, real-world examples, and search filtering for complex tax jargon (e.g., 44ADA, Deemed Profit, 5% Cash Rule, 234C Penalty, LUT Export, Standard Deduction).
@@ -148,24 +148,47 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 * **Full-Context Conversational Tax Partner**:
   * Tap the floating **"AI Tax Copilot"** launcher on the bottom-right of the screen or click **"AI Copilot"** in the top navigation header anytime.
   * Automatically injects your active profile numbers (Turnover, Cash %, Salary, Capital Gains, Deductions, and live tax liability).
-* **1. Natural Language Entry Assistant**:
+* **1. Indian Numerical Idioms Pre-processing**:
+  * Speak naturally using common Indian financial shorthand: *"I received 50k from my mother"*, *"Got client payment of 5 lakhs"*, *"Invested 1.5L in 80C"*, or *"Annual turnover is 2cr"*.
+  * The Copilot’s pre-processing engine instantly maps colloquial idioms (`50k` ➔ ₹50,000, `5 lakhs` ➔ ₹5,00,000, `2cr` ➔ ₹2,00,00,000) into precise integer rupee values before calculating taxes. It will **never** confuse "50k" as ₹50!
+* **2. Family & Relative Gift Tax Exemption (Section 56(2)(x))**:
+  * When you report gifts from family members (e.g., *"i received 50k from my mother"*), the Copilot immediately recognizes that under Section 56(2)(x), gifts from relatives are **100% tax-exempt without any monetary limit**.
+  * It reassures you that the amount incurs **₹0 tax** and ensures it is **not** wrongfully added to your business turnover.
+* **3. Natural Language Entry Assistant**:
   * Tell the Copilot what happened (e.g. *"I received ₹3,50,000 from a client via NEFT"* or *"Add ₹50,000 to my NPS Tier-1"* or *"My salary is ₹12,00,000"*).
   * The Copilot presents an interactive **"Proposed Profile Updates"** card with an instant **"1-Click Apply to My Profile"** button that synchronizes all calculations across the app.
-* **2. Instant What-If Analysis Engine**:
+* **4. Instant What-If Analysis Engine**:
   * Ask hypothetical questions like *"What if I invest ₹50,000 in NPS?"* or *"What if I switch 20% of my cash receipts to UPI?"*.
   * The Copilot generates a side-by-side **What-If Scenario Card** showing your Baseline Tax, Projected Tax, Net Rupee Savings, and recommended regime.
-* **3. Relentless Tax Outlay Minimization**:
+* **5. Relentless Tax Outlay Minimization**:
   * The Copilot is engineered with a strict mandate: **always minimize your legal tax liability**.
   * Guides you on Section 87A rebate thresholds (zero tax up to ₹7 Lakhs deemed income in New Regime), Section 80CCD(1B) NPS ₹50,000 deductions, Section 44AD 6% digital receipt incentives, staying below the 5% cash surveillance threshold, and single March 15 advance tax payments.
+
+---
+
+### 11. 🔐 User Accounts, Google Sign-In & Cloud Sync (Firebase & Firestore)
+* **1-Click Google Sign-In**:
+  * Tap **"Sign in with Google"** on the login modal to instantly authenticate with your Google account.
+  * Your avatar, name, and email are automatically synchronized.
+* **Email & Indian Mobile Authentication**:
+  * Create an account using your Email ID or 10-digit Indian Mobile Number with a secure password.
+  * You can also use pre-configured Demo Accounts (e.g., Software Consultant, Freelance Designer) to explore all tax scenarios instantly.
+* **Cloud Firestore Persistent Synchronization**:
+  * All your entries—gross turnover, cash percentages, salary figures, capital gains, and Chapter VI-A deductions—are securely persisted in Cloud Firestore (`/users/{userId}/taxProfiles/current`).
+  * Switch devices, close your browser, or refresh the page without ever losing your financial figures.
+* **Zero-Interruption Offline Fallback**:
+  * If your internet drops or you are working in an isolated environment, the app automatically falls back to secure local storage without throwing intrusive errors.
+* **Modular Provider Independence**:
+  * The architecture allows switching between cloud backends (Firebase, Supabase, PostgreSQL) without impacting your tax profiles or user experience.
 
 ---
 
 ## 🎯 How to Get Started in 3 Simple Steps
 
 1. **Sign Up / Log In**:
-   - Open the portal and enter your Email ID or 10-digit Indian Mobile Number with a password (or click a quick demo account).
+   - Click **"Sign In with Google"** for 1-click access, or enter your Email ID / 10-digit Mobile Number, or launch a quick Demo Account.
 2. **Enter Your Numbers**:
-   - Input your gross receipts in the **Engine Calculator** or aggregate income in the **Multi-Head & Salary Tax** tab.
+   - Input your gross receipts in the **Engine Calculator** or aggregate income in the **Multi-Head & Salary Tax** tab (or ask the AI Copilot to apply them for you).
 3. **Download Your Tax Plan & ITR-4 JSON**:
    - Review your recommended regime savings, download your PDF calculation report, and export your official ITR-4 JSON file for hassle-free e-filing!
 

@@ -1,0 +1,213 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and authentication identity",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user identifier matching request.auth.uid",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the taxpayer",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user",
+          "maxLength": 150
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Optional profile picture URL",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp in ISO format"
+        }
+      },
+      "required": ["id", "email"]
+    },
+    "TaxDataRecord": {
+      "title": "TaxDataRecord",
+      "description": "Tax and financial calculation state for a user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID owning this tax profile",
+          "maxLength": 128
+        },
+        "entityType": {
+          "type": "string",
+          "description": "Entity type (INDIVIDUAL, HUF, FIRM, etc.)",
+          "maxLength": 50
+        },
+        "activityType": {
+          "type": "string",
+          "description": "Activity type (PROFESSION or BUSINESS)",
+          "maxLength": 20
+        },
+        "professionCategory": {
+          "type": "string",
+          "description": "Profession category code",
+          "maxLength": 50
+        },
+        "businessCategory": {
+          "type": "string",
+          "description": "Business category code",
+          "maxLength": 50
+        },
+        "grossReceipts": {
+          "type": "number",
+          "description": "Gross turnover or professional receipts in INR"
+        },
+        "cashReceipts": {
+          "type": "number",
+          "description": "Cash receipts in INR"
+        },
+        "declaredProfit": {
+          "type": "string",
+          "description": "Optional user declared profit amount or percentage",
+          "maxLength": 50
+        },
+        "hasSalary": {
+          "type": "boolean",
+          "description": "Whether user has salary income"
+        },
+        "grossSalary": {
+          "type": "number",
+          "description": "Gross salary in INR"
+        },
+        "hasHouseProperty": {
+          "type": "boolean",
+          "description": "Whether user has rental income"
+        },
+        "rentalIncome": {
+          "type": "number",
+          "description": "Rental income in INR"
+        },
+        "hasCapitalGains": {
+          "type": "boolean",
+          "description": "Whether user has capital gains"
+        },
+        "stcgEquity": {
+          "type": "number",
+          "description": "Short-term capital gains on equity"
+        },
+        "stcgOther": {
+          "type": "number",
+          "description": "Other short-term capital gains"
+        },
+        "ltcgEquity": {
+          "type": "number",
+          "description": "Long-term capital gains on equity"
+        },
+        "ltcgOther": {
+          "type": "number",
+          "description": "Other long-term capital gains"
+        },
+        "hasOtherIncome": {
+          "type": "boolean",
+          "description": "Whether user has interest or other income"
+        },
+        "savingsInterest": {
+          "type": "number",
+          "description": "Savings bank interest"
+        },
+        "fdInterest": {
+          "type": "number",
+          "description": "Fixed deposit interest"
+        },
+        "otherIncome": {
+          "type": "number",
+          "description": "Other income"
+        },
+        "sec80C": {
+          "type": "number",
+          "description": "Section 80C deductions"
+        },
+        "sec80D": {
+          "type": "number",
+          "description": "Section 80D mediclaim deductions"
+        },
+        "sec80CCD1B": {
+          "type": "number",
+          "description": "Section 80CCD(1B) NPS Tier-1 deductions"
+        },
+        "sec80TTA": {
+          "type": "number",
+          "description": "Section 80TTA savings interest deduction"
+        },
+        "chapterVIADeductions": {
+          "type": "number",
+          "description": "Total Chapter VI-A deductions"
+        },
+        "tdsClaimed": {
+          "type": "number",
+          "description": "TDS claimed"
+        },
+        "isExport": {
+          "type": "boolean",
+          "description": "Whether billing zero-rated exports"
+        },
+        "lutNumber": {
+          "type": "string",
+          "description": "GST LUT ARN reference",
+          "maxLength": 50
+        },
+        "q1Paid": {
+          "type": "number",
+          "description": "Advance tax paid in Q1"
+        },
+        "q2Paid": {
+          "type": "number",
+          "description": "Advance tax paid in Q2"
+        },
+        "q3Paid": {
+          "type": "number",
+          "description": "Advance tax paid in Q3"
+        },
+        "q4Paid": {
+          "type": "number",
+          "description": "Advance tax paid in Q4"
+        },
+        "isDemoDataLoaded": {
+          "type": "boolean",
+          "description": "Whether demo data was loaded"
+        },
+        "hasCompletedWizard": {
+          "type": "boolean",
+          "description": "Whether user finished wizard"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["userId", "grossReceipts"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "User profile collection storing individual user information and authentication details"
+    },
+    "/users/{userId}/taxProfiles/{profileId}": {
+      "schema": {
+        "$ref": "#/entities/TaxDataRecord"
+      },
+      "description": "User tax profiles sub-collection storing the comprehensive financial calculation states and parameters"
+    }
+  }
+}

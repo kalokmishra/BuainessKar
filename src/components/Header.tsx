@@ -144,15 +144,21 @@ export const Header: React.FC<HeaderProps> = ({
                   className="flex items-center gap-2 bg-slate-950/90 hover:bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-800 transition-all cursor-pointer shadow-sm text-left"
                   title="User Profile & Settings"
                 >
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
-                    <UserIcon className="w-3.5 h-3.5" />
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
+                    {currentUser.photoURL ? (
+                      <img src={currentUser.photoURL} alt={currentUser.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-3.5 h-3.5" />
+                    )}
                   </div>
                   <div className="hidden sm:block text-left pr-1">
                     <span className="text-xs font-bold text-slate-200 block leading-none truncate max-w-[110px]">
                       {currentUser.name}
                     </span>
                     <span className="text-[9px] text-slate-400 font-mono flex items-center gap-0.5 mt-0.5">
-                      {currentUser.type === 'email' ? (
+                      {currentUser.type === 'google' ? (
+                        <span className="text-emerald-400 font-bold">Google</span>
+                      ) : currentUser.type === 'email' ? (
                         <Mail className="w-2.5 h-2.5 text-slate-400" />
                       ) : (
                         <Phone className="w-2.5 h-2.5 text-slate-400" />
@@ -181,6 +187,10 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
                         <span className="truncate">{currentUser.identifier}</span>
                       </p>
+                      <div className="mt-1.5 flex items-center gap-1 text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>Firestore Data Sync Active</span>
+                      </div>
                     </div>
 
                     {/* Actions List */}
