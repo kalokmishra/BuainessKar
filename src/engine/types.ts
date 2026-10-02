@@ -403,3 +403,33 @@ export interface AITaxAdvisorResponse {
   tips: AITaxTip[];
   actionChecklist: string[];
 }
+
+export interface WhatIfAnalysis {
+  scenarioTitle: string;
+  baselineTax: number;
+  projectedTax: number;
+  taxSavings: number; // positive = saved money, negative = increased tax
+  baselineRegime: 'NEW' | 'OLD';
+  recommendedRegime: 'NEW' | 'OLD';
+  effectiveRateBefore: number;
+  effectiveRateAfter: number;
+  keyTakeaway: string;
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  suggestedUpdates?: Record<string, any>;
+  whatIf?: WhatIfAnalysis;
+  isApplied?: boolean;
+}
+
+export interface AIChatCopilotResponse {
+  reply: string;
+  intent: 'ASSIST_ENTRY' | 'WHAT_IF_ANALYSIS' | 'TAX_MINIMIZATION' | 'GENERAL_QUERY';
+  suggestedUpdates?: Record<string, any>;
+  whatIf?: WhatIfAnalysis;
+  quickFollowUps?: string[];
+}

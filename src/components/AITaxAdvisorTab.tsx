@@ -18,6 +18,7 @@ import { generateFallbackTips } from '../engine/aiAdvisor';
 import { evaluateEligibility } from '../engine/eligibility';
 import { evaluateCashSurveillance } from '../engine/cashSurveillance';
 import { calculatePresumptiveTax } from '../engine/presumptiveTax';
+import { useTaxData } from '../context/TaxDataContext';
 
 interface AITaxAdvisorTabProps {
   calculatorInput?: {
@@ -33,6 +34,7 @@ interface AITaxAdvisorTabProps {
 }
 
 export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInput }) => {
+  const { openChat } = useTaxData();
   const defaultInput = calculatorInput || {
     entityType: 'INDIVIDUAL',
     activityType: 'PROFESSION',
@@ -215,14 +217,24 @@ export const AITaxAdvisorTab: React.FC<AITaxAdvisorTabProps> = ({ calculatorInpu
             </div>
           </div>
 
-          <button
-            onClick={fetchAITips}
-            disabled={loading}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm transition-all shrink-0 self-start md:self-auto"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            <span>{loading ? 'Analyzing Tax Data...' : advisorData ? 'Re-analyze Tax Data' : 'Run AI Analysis'}</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
+            <button
+              onClick={() => openChat()}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-200 animate-pulse" />
+              <span>Open AI Copilot Chat</span>
+            </button>
+
+            <button
+              onClick={fetchAITips}
+              disabled={loading}
+              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              <span>{loading ? 'Analyzing...' : advisorData ? 'Re-analyze' : 'Run Overview'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

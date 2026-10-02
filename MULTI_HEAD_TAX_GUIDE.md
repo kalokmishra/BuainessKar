@@ -98,4 +98,23 @@ Many Indian freelancers and independent consultants operate with multi-source in
 * **Shared State Context**: `/src/context/TaxDataContext.tsx` (synchronizes salary and capital gains state across Guided Onboarding and Tax Tabs)
 * **REST API Endpoint**: `POST /api/tax/comprehensive` in `/server.ts`
 * **Interactive UI Tab**: `Multi-Head & Salary Tax` (`/src/components/ComprehensiveTaxTab.tsx`)
-* **Unit Tests**: `/tests/comprehensiveTax.test.ts` (100% test coverage)
+* **AI Chat Copilot Integration**: `/src/engine/aiChatCopilot.ts` & `/src/components/AIChatPanel.tsx` (enables natural language multi-head entry addition and what-if analysis with 1-click apply)
+* **Unit Tests**: `/tests/comprehensiveTax.test.ts` & `/tests/aiChatCopilot.test.ts` (100% test coverage)
+
+---
+
+## 🤖 Using the AI Tax Chat Copilot for Multi-Head What-If Scenarios
+
+Taxpayers can open the **AI Tax Copilot** from anywhere in the app to analyze complex multi-head scenarios in natural language:
+
+1. **Simulating Salaried Employment + Freelancing**:
+   - *Prompt*: *"What if my employer pays me ₹12,00,000 salary alongside my ₹25,00,000 freelance receipts?"*
+   - *Copilot Response*: Applies the ₹75,000 Salaried Standard Deduction under New Regime, calculates the 50% deemed profit under Section 44ADA, checks the revised slab brackets, and displays exact net tax liabilities for both regimes with a 1-click **"Apply to Profile"** button.
+
+2. **Equity Capital Gains Impact (STCG 111A / LTCG 112A)**:
+   - *Prompt*: *"I made ₹1,50,000 in short-term stock gains and ₹2,50,000 in long-term mutual fund gains."*
+   - *Copilot Response*: Segregates STCG at 20% (Sec 111A), exempts the first ₹1,25,000 of LTCG (Sec 112A), taxes the remaining ₹1,25,000 at 12.5%, checks if unexhausted basic exemption offset applies, and reports total tax outlay.
+
+3. **NPS Tier-1 Maximization (Section 80CCD(1B))**:
+   - *Prompt*: *"What if I invest ₹50,000 in NPS?"*
+   - *Copilot Response*: Tests whether adding the ₹50,000 exclusive deduction tilts your optimal choice from New Regime to Old Regime, showing the before-and-after tax difference down to the single rupee.

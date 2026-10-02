@@ -128,6 +128,15 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Provides interactive hover tooltips (`FieldTooltip`) on tax input fields explaining statutory limits, section codes, and calculation formulas.
   - Houses a slide-out Tax Glossary & Concepts drawer (`TaxInfoDrawer`) offering plain-English definitions, real-world examples, and category filtering for non-financial users.
 
+### Module 12: AI Tax Chat Copilot (`aiChatCopilot.ts` & `AIChatPanel.tsx`)
+- **Responsibilities:**
+  - Full-context conversational AI engine powered by **Gemini 3.8 Flash** (`@google/genai`) on the server side (`POST /api/tax/chat`).
+  - **Live Profile Context Injection:** Automatically inspects user's active turnover, cash ratio, salary, capital gains, Chapter VI-A deductions, and real-time tax liabilities.
+  - **Assists in Adding Entries:** Natural language intent parser for incoming payments, receipts, salary additions, and deductions (80C, 80D, 80CCD1B) with an interactive **"1-Click Apply to Profile"** widget that directly mutates `TaxDataState`.
+  - **What-If Analysis Engine:** Runs baseline vs projected tax simulations returning `WhatIfAnalysis` objects detailing before & after taxes, exact ₹ tax savings, and recommended tax regime.
+  - **Tax Outlay Minimization:** Formulates tailored legal minimization strategies using Section 87A rebate thresholds, Chapter VI-A deductions, digital receipts under Section 44AD (6% deemed profit), 5% cash surveillance discipline, and Section 211(1)(b) single March 15 advance tax payment privileges.
+  - **Deterministic Rule Engine Fallback:** Seamless offline and test-environment operation (`generateDeterministicChatResponse`) guaranteeing 100% calculation reliability without external API dependencies.
+
 ### Utility 1: `pdfExporter.ts`
 - **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
 - **Responsibilities:**
@@ -144,7 +153,7 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (31 tests across 9 test suites):
+Test coverage includes (36 tests across 10 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).
@@ -154,7 +163,8 @@ Test coverage includes (31 tests across 9 test suites):
 7. Official ITR-4 Sugam JSON formatting and schema validation.
 8. Gemini AI Advisor response formatting & rule-based offline fallback handling.
 9. Multi-head aggregate tax computation across Salary, Presumptive Business/Profession, STCG Sec 111A, LTCG Sec 112A/112, and basic exemption set-off rules.
-10. User authentication, signup/login validation, and session persistence.
+10. AI Tax Chat Copilot What-If simulation, entry addition, and tax minimization planning.
+11. User authentication, signup/login validation, and session persistence.
 
 ---
 

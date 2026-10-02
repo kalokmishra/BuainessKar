@@ -144,6 +144,22 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ---
 
+### 10. 💬 AI Tax Chat Copilot (`AI Tax Copilot Panel`)
+* **Full-Context Conversational Tax Partner**:
+  * Tap the floating **"AI Tax Copilot"** launcher on the bottom-right of the screen or click **"AI Copilot"** in the top navigation header anytime.
+  * Automatically injects your active profile numbers (Turnover, Cash %, Salary, Capital Gains, Deductions, and live tax liability).
+* **1. Natural Language Entry Assistant**:
+  * Tell the Copilot what happened (e.g. *"I received ₹3,50,000 from a client via NEFT"* or *"Add ₹50,000 to my NPS Tier-1"* or *"My salary is ₹12,00,000"*).
+  * The Copilot presents an interactive **"Proposed Profile Updates"** card with an instant **"1-Click Apply to My Profile"** button that synchronizes all calculations across the app.
+* **2. Instant What-If Analysis Engine**:
+  * Ask hypothetical questions like *"What if I invest ₹50,000 in NPS?"* or *"What if I switch 20% of my cash receipts to UPI?"*.
+  * The Copilot generates a side-by-side **What-If Scenario Card** showing your Baseline Tax, Projected Tax, Net Rupee Savings, and recommended regime.
+* **3. Relentless Tax Outlay Minimization**:
+  * The Copilot is engineered with a strict mandate: **always minimize your legal tax liability**.
+  * Guides you on Section 87A rebate thresholds (zero tax up to ₹7 Lakhs deemed income in New Regime), Section 80CCD(1B) NPS ₹50,000 deductions, Section 44AD 6% digital receipt incentives, staying below the 5% cash surveillance threshold, and single March 15 advance tax payments.
+
+---
+
 ## 🎯 How to Get Started in 3 Simple Steps
 
 1. **Sign Up / Log In**:

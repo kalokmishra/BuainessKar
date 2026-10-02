@@ -21,12 +21,13 @@ The application is built as a full-stack, Rules-as-Code (RaC) web app:
 │   ├── advanceTax.ts              <-- Section 211 quarterly schedules & 234C delay interest
 │   ├── invoiceExporter.ts         <-- GST & zero-rated LUT export invoice generator
 │   ├── itr4Schema.ts              <-- Income Tax Dept ITR-4 (Sugam) JSON builder & validateITR4SchemaCompliance
-│   ├── aiAdvisor.ts               <-- Gemini 3.6 Flash tax advisory prompt engine & fallback handler
-│   └── comprehensiveTax.ts        <-- Multi-Head Salary & Capital Gains Tax Calculator engine
-├── src/context/                   <-- AuthContext user session management
-├── src/components/                <-- React UI components (Calculator, Comprehensive Tax, ITR-4 Mapper, etc.)
+│   ├── aiAdvisor.ts               <-- Gemini AI tax advisory prompt engine & fallback handler
+│   ├── comprehensiveTax.ts        <-- Multi-Head Salary & Capital Gains Tax Calculator engine
+│   └── aiChatCopilot.ts           <-- Full-Context AI Tax Copilot (What-If Analysis & Entry Assistant)
+├── src/context/                   <-- AuthContext & TaxDataContext state management
+├── src/components/                <-- React UI components (Calculator, AIChatPanel, Multi-Head, etc.)
 ├── server.ts                      <-- Express backend & Vite middleware server (Port 3000)
-└── tests/                         <-- Vitest unit test suite (31 unit tests across 9 test suites)
+└── tests/                         <-- Vitest unit test suite (36 unit tests across 10 test suites)
 ```
 
 ---
@@ -48,7 +49,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 | Operational Task | Command Line | Description |
 | :--- | :--- | :--- |
 | **Start Local Dev Server** | `npm run dev` | Boots Express server on `http://localhost:3000` with Vite HMR |
-| **Run Unit Tests** | `npm test` | Runs the full Vitest suite across all 7 test suites |
+| **Run Unit Tests** | `npm test` | Runs the full Vitest suite across all 10 test suites |
 | **Run Linter / Type Check**| `npm run lint` | Runs `tsc --noEmit` to verify type safety |
 | **Production Build** | `npm run build` | Bundles Vite client to `dist/` and server to `dist/server.cjs` |
 | **Start Production Mode** | `npm start` | Launches compiled server (`node dist/server.cjs`) on port 3000 |
@@ -110,6 +111,14 @@ Below are common issues interns may encounter, along with step-by-step diagnosti
   2. **Data Structure:** Verify that `src/utils/pdfExporter.ts` receives valid `eligibility` and `presumptive` evaluation objects.
   3. **Browser Popup/Download Blockers:** Ensure browser settings allow automatic file downloads for the application origin.
 
+### Scenario F: AI Tax Chat Copilot (`/api/tax/chat`) & What-If Analysis
+- **Symptom:** AI Copilot fails to open, returns error messages, or 1-click update does not modify values.
+- **Diagnosis & Fix:**
+  1. **API Endpoint Check:** Ensure the backend `POST /api/tax/chat` endpoint is responding properly with `{ status: 'success', data: { reply, intent, suggestedUpdates, whatIf } }`.
+  2. **Gemini SDK Version:** The backend uses `@google/genai` with model `gemini-3.8-flash`. Ensure `User-Agent: 'aistudio-build'` is present in `httpOptions`.
+  3. **Deterministic Fallback:** If `GEMINI_API_KEY` is absent or the call fails, `aiChatCopilot.ts` falls back to `generateDeterministicChatResponse`. It parses keywords like "nps", "invoice", "receipt", "80d", "regime", and runs `computeBaselineTax` to return exact math.
+  4. **1-Click Apply Flow:** When the user clicks "Apply Changes to My Profile", `handleApplyUpdates` in `AIChatPanel.tsx` calls `updateTaxData(msg.suggestedUpdates)`, automatically enabling any multi-head income flags (e.g. `hasSalary`, `hasCapitalGains`) and recomputing taxes application-wide.
+
 ---
 
 ## 5. File Structure Reference Guide for Interns
@@ -117,26 +126,29 @@ Below are common issues interns may encounter, along with step-by-step diagnosti
 | Path | Primary Function | Intern Maintenance Responsibility |
 | :--- | :--- | :--- |
 | `taxSchema.json` | Statutory tax rules & thresholds | Modify when budget/tax slab rules change |
-| `src/engine/eligibility.ts` | Entity & 44AD/44ADA rules | Maintain turn-over cash limit rules (5% cash receipt threshold) |
+| `src/engine/eligibility.ts` | Entity & 44AD/44ADA rules | Maintain turnover cash limit rules (5% cash receipt threshold) |
 | `src/engine/presumptiveTax.ts` | Tax computation logic | Maintain rebate, slab math, and regime comparison |
 | `src/engine/cashSurveillance.ts` | Cash risk alerts | Update alert thresholds or bilingual message strings |
 | `src/engine/advanceTax.ts` | Section 211 & 234C | Verify quarterly dates (June, Sept, Dec, March 15) |
 | `src/engine/invoiceExporter.ts` | Export/GST invoice math | Verify SAC codes and LUT disclaimer text |
 | `src/engine/itr4Schema.ts` | ITR-4 JSON builder & validator | Verify field mappings & `validateITR4SchemaCompliance` |
+| `src/engine/aiAdvisor.ts` | Overview AI Advisor | Overview tax tips prompt & rule fallback |
 | `src/engine/comprehensiveTax.ts` | Multi-head salary & capital gains engine | Maintain standard deduction and capital gains special rates |
+| `src/engine/aiChatCopilot.ts` | AI Tax Copilot conversation engine | Prompts Gemini 3.8 Flash, computes baseline & what-if scenarios, provides rule engine fallback |
 | `src/context/AuthContext.tsx` | User authentication & sessions | Manage Email / Mobile session persistence and `changePassword` logic |
-| `src/components/Header.tsx` | Top Navigation Header | Top profile dropdown (Reset Password & Logout), Tax Glossary launcher, and auto-scroll behavior |
+| `src/context/TaxDataContext.tsx` | Shared tax financial state & onboarding context | Maintain zero-default profile state, ZERO_TAX_DATA, DEMO_TAX_DATA, and chat drawer state |
+| `src/components/Header.tsx` | Top Navigation Header | Top profile dropdown, AI Copilot trigger, Tax Glossary launcher, and auto-scroll behavior |
 | `src/components/LoginModal.tsx` | Sign In / Sign Up modal | Maintain login credentials form & "Forgot password?" admin notice |
 | `src/components/ChangePasswordModal.tsx` | Reset password modal | Maintain current password verification and new password fields |
 | `src/components/FieldTooltip.tsx` | Hover-based input tooltips | Interactive tooltips rendering statutory tax rules on input labels |
 | `src/components/TaxInfoDrawer.tsx` | Slide-out Tax Terms & Glossary Drawer | Plain-English definitions, search filter, and real-world tax examples |
-| `src/context/TaxDataContext.tsx` | Shared tax financial state & onboarding context | Maintain zero-default profile state, ZERO_TAX_DATA, and DEMO_TAX_DATA definitions |
+| `src/components/AIChatPanel.tsx` | Conversational AI Tax Copilot | Floating launcher, message thread, What-If scenario cards, and 1-click update buttons |
 | `src/components/GuidedOnboardingTour.tsx` | 4-step onboarding wizard modal | Maintain step navigation, input form validation, in-wizard Load Demo Data & Reset All tools |
 | `src/components/OnboardingPromptBanner.tsx` | Onboarding banner prompt | Displays welcome prompt with Zero Data vs Demo Data indicator |
 | `src/utils/pdfExporter.ts` | PDF Report Generator | Formats Section 44AD/44ADA calculation reports in jsPDF |
 | `src/components/CalculatorTab.tsx` | Main calculation screen | UI layout, input state, local storage & PDF/JSON export |
 | `src/components/ITR4MapperTab.tsx` | ITR-4 Sugam mapper & validator UI | Form section explorer, validation banner & JSON exporter |
-| `tests/*.test.ts` | 9 Vitest test suites | Add new test cases whenever engine rules are updated |
+| `tests/*.test.ts` | 10 Vitest test suites | Add new test cases whenever engine rules are updated (36 tests) |
 
 ---
 

@@ -16,6 +16,7 @@ import { calculatePresumptiveTax } from './src/engine/presumptiveTax.js';
 import { calculateComprehensiveTax } from './src/engine/comprehensiveTax.js';
 import { getTaxSchema, setTaxSchema } from './src/engine/schemaLoader.js';
 import { generateAITaxTips } from './src/engine/aiAdvisor.js';
+import { processAIChatCopilot } from './src/engine/aiChatCopilot.js';
 
 async function startServer() {
   const app = express();
@@ -320,6 +321,30 @@ async function startServer() {
           customQuestion: req.body?.customQuestion,
         }),
       });
+    }
+  });
+
+  // 9. AI Tax Chat Copilot API (Assists entries, What-If Analysis, Tax Minimization)
+  app.post('/api/tax/chat', async (req, res) => {
+    try {
+      const { message, history, profile } = req.body || {};
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ status: 'error', message: 'Message is required' });
+      }
+
+      const copilotResponse = await processAIChatCopilot({
+        message,
+        history: history || [],
+        profile: profile || { taxData: {} },
+      });
+
+      res.json({
+        status: 'success',
+        data: copilotResponse,
+      });
+    } catch (err: any) {
+      console.error('API /api/tax/chat error:', err);
+      res.status(500).json({ status: 'error', message: err.message || 'Internal error' });
     }
   });
 

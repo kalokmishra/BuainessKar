@@ -13,6 +13,7 @@ import { ITR4MapperTab } from './components/ITR4MapperTab';
 import { ComprehensiveTaxTab } from './components/ComprehensiveTaxTab';
 import { SchemaInspectorTab } from './components/SchemaInspectorTab';
 import { AITaxAdvisorTab } from './components/AITaxAdvisorTab';
+import { AIChatPanel } from './components/AIChatPanel';
 
 import { getTaxSchema } from './engine/schemaLoader';
 import {
@@ -114,6 +115,9 @@ function MainAppContent() {
 
       {/* Guided Onboarding Modal */}
       <GuidedOnboardingTour />
+
+      {/* AI Tax Chat Copilot Panel (What-If Analysis & Entry Assistant) */}
+      <AIChatPanel />
 
       {/* Statutory Compliance Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-slate-500 text-xs text-center">

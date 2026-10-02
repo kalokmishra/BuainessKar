@@ -62,6 +62,12 @@
     - Features top-right user profile dropdown menu (with Reset Password modal trigger and Logout), "Forgot password?" admin contact notice (`contactadmin@businesskar.com`) on the login screen, and automatic window scroll-to-top on tab navigation.
     - Includes interactive hover-based **Field Tooltips** (`/src/components/FieldTooltip.tsx`) across all calculator inputs and a slide-out **Tax Glossary Info Drawer** (`/src/components/TaxInfoDrawer.tsx`) offering plain-English definitions and section references for non-financial users.
 
+14. **AI Tax Chat Copilot (`/src/engine/aiChatCopilot.ts` & `/src/components/AIChatPanel.tsx`):**
+    - Full-context AI assistant powered by Gemini 3.8 Flash (`@google/genai`) and server-side `/api/tax/chat` endpoint.
+    - **Assists in Adding Entries:** Natural language recognition for incoming invoices, cash receipts, salary, capital gains, Section 80C, 80D, and Section 80CCD(1B) NPS with an interactive **"1-Click Apply to Profile"** widget.
+    - **What-If Analysis Engine:** Automatically computes baseline vs projected tax outlay, exact ₹ tax savings, and recommended tax regime (Old vs New).
+    - **Always Minimizes Tax Outlay:** Formulates strategies to legally drive tax liability to the minimum using Section 87A rebate thresholds, Chapter VI-A deductions, digital receipts under Section 44AD (6% deemed profit), 5% cash surveillance discipline, and Section 211(1)(b) single March 15 advance tax payment privileges.
+
 ---
 
 ## 🚀 Quick Start & Running
@@ -81,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 31 automated unit tests across 9 test suites using Vitest covering all core engine edge cases.
+Runs 36 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -115,7 +121,8 @@ npm start
 │   │   ├── invoiceExporter.ts     # Module 5: GST & LUT Zero-Rated Export invoice metadata
 │   │   ├── itr4Schema.ts          # Module 6: Official ITR-4 Sugam JSON exporter & validator
 │   │   ├── aiAdvisor.ts           # Module 7: Gemini AI Tax Advisor & offline fallback
-│   │   └── comprehensiveTax.ts    # Module 8: Multi-Head Salary & Capital Gains Tax Calculator engine
+│   │   ├── comprehensiveTax.ts    # Module 8: Multi-Head Salary & Capital Gains Tax Calculator engine
+│   │   └── aiChatCopilot.ts       # Module 9: Full-Context AI Tax Copilot (What-If Analysis & Entry Assistant)
 │   ├── context/
 │   │   ├── AuthContext.tsx        # User Authentication & Session state management
 │   │   └── TaxDataContext.tsx     # Global shared tax data state & onboarding context
@@ -127,6 +134,7 @@ npm start
 │   │   ├── ChangePasswordModal.tsx# Reset password modal
 │   │   ├── FieldTooltip.tsx       # Interactive hover-based tax rule tooltips
 │   │   ├── TaxInfoDrawer.tsx      # Slide-out Tax Terms & Glossary Info Drawer
+│   │   ├── AIChatPanel.tsx        # AI Tax Copilot chat panel with What-If cards & 1-click update buttons
 │   │   ├── GuidedOnboardingTour.tsx# Interactive 4-step onboarding setup wizard modal
 │   │   ├── OnboardingPromptBanner.tsx# Top banner prompt with Zero Data vs Demo Data indicator
 │   │   ├── CalculatorTab.tsx      # Interactive presumptive calculator with Local Storage & PDF export
@@ -149,6 +157,7 @@ npm start
     ├── itr4Schema.test.ts
     ├── aiAdvisor.test.ts
     ├── comprehensiveTax.test.ts
+    ├── aiChatCopilot.test.ts
     └── auth.test.ts
 ```
 

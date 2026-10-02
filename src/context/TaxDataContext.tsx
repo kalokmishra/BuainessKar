@@ -152,6 +152,11 @@ interface TaxDataContextType {
   isBannerDismissed: boolean;
   dismissBanner: () => void;
   isZeroData: boolean;
+  isChatOpen: boolean;
+  openChat: (initialPrompt?: string) => void;
+  closeChat: () => void;
+  chatInitialPrompt: string | null;
+  clearChatInitialPrompt: () => void;
 }
 
 const TaxDataContext = createContext<TaxDataContextType | undefined>(undefined);
@@ -171,6 +176,8 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [chatInitialPrompt, setChatInitialPrompt] = useState<string | null>(null);
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(() => {
     try {
       return localStorage.getItem(LOCAL_STORAGE_BANNER_DISMISSED) === 'true';
@@ -218,6 +225,15 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const openTour = () => setIsTourOpen(true);
   const closeTour = () => setIsTourOpen(false);
 
+  const openChat = (initialPrompt?: string) => {
+    if (initialPrompt) {
+      setChatInitialPrompt(initialPrompt);
+    }
+    setIsChatOpen(true);
+  };
+  const closeChat = () => setIsChatOpen(false);
+  const clearChatInitialPrompt = () => setChatInitialPrompt(null);
+
   const dismissBanner = () => {
     setIsBannerDismissed(true);
     try {
@@ -248,6 +264,11 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isBannerDismissed,
         dismissBanner,
         isZeroData,
+        isChatOpen,
+        openChat,
+        closeChat,
+        chatInitialPrompt,
+        clearChatInitialPrompt,
       }}
     >
       {children}

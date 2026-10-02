@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   assessmentYear,
 }) => {
   const { currentUser, logout } = useAuth();
-  const { openTour } = useTaxData();
+  const { openTour, openChat } = useTaxData();
   const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isInfoDrawerOpen, setIsInfoDrawerOpen] = useState<boolean>(false);
@@ -97,6 +97,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right: Actions & User Profile Badge */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end">
+            {/* AI Copilot Button */}
+            <button
+              onClick={() => openChat()}
+              className="px-2.5 py-1 bg-gradient-to-r from-emerald-600/90 to-teal-600/90 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 rounded-lg transition-all cursor-pointer shrink-0 flex items-center gap-1.5 text-xs font-bold shadow-sm shadow-emerald-950/30"
+              title="Open AI Tax Copilot (What-If Analysis, Entry Assistant, Tax Minimization)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <span>AI Copilot</span>
+            </button>
+
             {/* Tax Glossary Button */}
             <button
               onClick={() => setIsInfoDrawerOpen(true)}
