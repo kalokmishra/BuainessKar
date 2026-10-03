@@ -11,11 +11,40 @@ import {
   X,
   ShieldCheck,
 } from 'lucide-react';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from './Logo';
 
+// Read configuration from environment variables defined in .env.local via import.meta.env
+const adminSupportEmail = (import.meta.env.VITE_ADMIN_SUPPORT_EMAIL as string) || 'contactadmin@businesskar.com';
+const defaultDemoEmail = (import.meta.env.VITE_DEFAULT_DEMO_EMAIL as string) || 'rahul@taxpro.in';
+const defaultDemoName = (import.meta.env.VITE_DEFAULT_DEMO_NAME as string) || 'Rahul (IT Consultant)';
+const secondaryDemoPhone = (import.meta.env.VITE_SECONDARY_DEMO_PHONE as string) || '9876543210';
+const secondaryDemoName = (import.meta.env.VITE_SECONDARY_DEMO_NAME as string) || 'Priya (Retail Trader)';
+
+/**
+ * Firebase configuration pulled directly from environment variables via import.meta.env
+ * to ensure consistent initialization across the application and prevent credential exposure.
+ */
+export const firebaseConfig = {
+  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || '',
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || '',
+  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || '',
+  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || '',
+  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || '',
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || '',
+  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || undefined,
+  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as string) || undefined,
+};
+
+// Ensure consistent Firebase app instance using environment variables
+export const firebaseApp = !getApps().length && firebaseConfig.apiKey
+  ? initializeApp(firebaseConfig)
+  : (getApps().length ? getApp() : null);
+
 export const LoginModal: React.FC = () => {
-  const { login, signup, signInWithGoogle, activeProvider } = useAuth();
+  const { login, signup, signInWithGoogle, firebaseConfig: authFirebaseConfig } = useAuth();
+  const activeFirebaseConfig = authFirebaseConfig || firebaseConfig;
 
   const [mode, setMode] = useState<'LOGIN' | 'SIGNUP'>('LOGIN');
   const [identifier, setIdentifier] = useState<string>('');
@@ -267,7 +296,7 @@ export const LoginModal: React.FC = () => {
                 </button>
               </div>
               <p className="text-[11px] text-amber-300/90 leading-relaxed">
-                For security, contact your tax administrator at <span className="font-mono text-amber-200 font-bold">contactadmin@businesskar.com</span> or sign in directly with Google.
+                For security, contact your tax administrator at <span className="font-mono text-amber-200 font-bold">{adminSupportEmail}</span> or sign in directly with Google.
               </p>
             </div>
           )}
@@ -319,28 +348,28 @@ export const LoginModal: React.FC = () => {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               type="button"
-              onClick={() => handleDemoLogin('rahul@taxpro.in', 'password123')}
+              onClick={() => handleDemoLogin(defaultDemoEmail, 'password123')}
               className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-xl text-left transition-all space-y-0.5 cursor-pointer"
             >
-              <span className="text-emerald-400 font-bold block text-[11px]">Rahul (IT Consultant)</span>
-              <span className="text-[10px] text-slate-400 block font-mono">rahul@taxpro.in</span>
+              <span className="text-emerald-400 font-bold block text-[11px]">{defaultDemoName}</span>
+              <span className="text-[10px] text-slate-400 block font-mono">{defaultDemoEmail}</span>
             </button>
 
             <button
               type="button"
-              onClick={() => handleDemoLogin('9876543210', 'password123')}
+              onClick={() => handleDemoLogin(secondaryDemoPhone, 'password123')}
               className="bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-xl text-left transition-all space-y-0.5 cursor-pointer"
             >
-              <span className="text-emerald-400 font-bold block text-[11px]">Priya (Retail Trader)</span>
-              <span className="text-[10px] text-slate-400 block font-mono">9876543210</span>
+              <span className="text-emerald-400 font-bold block text-[11px]">{secondaryDemoName}</span>
+              <span className="text-[10px] text-slate-400 block font-mono">{secondaryDemoPhone}</span>
             </button>
           </div>
         </div>
 
-        {/* Security & Provider Badge */}
+        {/* Security Badge */}
         <div className="pt-2 border-t border-slate-800/80 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Modular Auth Provider: <strong className="text-emerald-400 uppercase font-mono">{activeProvider}</strong> (Firestore Sync Active)</span>
+          <span>Secure, encrypted tax evaluation session</span>
         </div>
       </div>
     </div>

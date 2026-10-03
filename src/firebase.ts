@@ -12,7 +12,6 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
-import appletConfig from '../firebase-applet-config.json';
 
 // Helper to safely read from either Vite (import.meta.env) or Node/CRA (process.env)
 function getEnv(key: string): string | undefined {
@@ -30,19 +29,18 @@ function getEnv(key: string): string | undefined {
   return undefined;
 }
 
-const rawConfig = (appletConfig as Record<string, string>) || {};
-
-const apiKey = getEnv('FIREBASE_API_KEY') || getEnv('API_KEY') || rawConfig.apiKey;
-const projectId = getEnv('FIREBASE_PROJECT_ID') || rawConfig.projectId || 'global-fort-mfht8';
-const authDomain = getEnv('FIREBASE_AUTH_DOMAIN') || rawConfig.authDomain || `${projectId}.firebaseapp.com`;
-const storageBucket = getEnv('FIREBASE_STORAGE_BUCKET') || rawConfig.storageBucket || `${projectId}.firebasestorage.app`;
-const messagingSenderId = getEnv('FIREBASE_MESSAGING_SENDER_ID') || rawConfig.messagingSenderId || '952143367787';
-const appId = getEnv('FIREBASE_APP_ID') || rawConfig.appId || '1:952143367787:web:cf5f5c092894c77742eb2e';
-const measurementId = getEnv('FIREBASE_MEASUREMENT_ID') || rawConfig.measurementId || '';
-const firestoreDatabaseId = getEnv('FIREBASE_FIRESTORE_DATABASE_ID') || rawConfig.firestoreDatabaseId || 'ai-studio-taxutilitymvpsec-73c0f477-424e-4989-b3d1-90275716ca08';
+// Load Firebase configuration strictly from Vite environment variables (.env.local / import.meta.env)
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_API_KEY : '');
+const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_PROJECT_ID : '');
+const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_AUTH_DOMAIN : '');
+const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_STORAGE_BUCKET : '');
+const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_MESSAGING_SENDER_ID : '');
+const appId = import.meta.env.VITE_FIREBASE_APP_ID || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_APP_ID : '');
+const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_MEASUREMENT_ID : '');
+const firestoreDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || (typeof process !== 'undefined' ? process.env?.VITE_FIREBASE_FIRESTORE_DATABASE_ID : '');
 
 export const firebaseConfig = {
-  apiKey: apiKey || 'AIzaSyPlaceholderForLocalDev',
+  apiKey,
   projectId,
   authDomain,
   storageBucket,

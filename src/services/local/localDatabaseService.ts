@@ -73,4 +73,59 @@ export class LocalDatabaseService implements IDatabaseService {
       }
     };
   }
+
+  private getDocStorageKey(collectionPath: string, docId: string): string {
+    return `bk_doc_${collectionPath.replace(/\//g, '_')}_${docId}`;
+  }
+
+  async createDocument<T extends Record<string, any>>(collectionPath: string, docId: string, data: T): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    const key = this.getDocStorageKey(collectionPath, docId);
+    const payload = {
+      ...data,
+      id: docId,
+      createdAt: data.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+
+  async updateDocument<T extends Record<string, any>>(collectionPath: string, docId: string, data: Partial<T>): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    const key = this.getDocStorageKey(collectionPath, docId);
+    const existingRaw = localStorage.getItem(key);
+    const existing = existingRaw ? JSON.parse(existingRaw) : {};
+    const payload = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+
+  async setDocument<T extends Record<string, any>>(collectionPath: string, docId: string, data: T, merge = true): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    const key = this.getDocStorageKey(collectionPath, docId);
+    let payload: Record<string, any> = { ...data };
+    if (merge) {
+      const existingRaw = localStorage.getItem(key);
+      const existing = existingRaw ? JSON.parse(existingRaw) : {};
+      payload = { ...existing, ...data };
+    }
+    payload.updatedAt = new Date().toISOString();
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+
+  async getDocument<T extends Record<string, any>>(collectionPath: string, docId: string): Promise<T | null> {
+    if (typeof localStorage === 'undefined') return null;
+    const key = this.getDocStorageKey(collectionPath, docId);
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  async deleteDocument(collectionPath: string, docId: string): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    const key = this.getDocStorageKey(collectionPath, docId);
+    localStorage.removeItem(key);
+  }
 }

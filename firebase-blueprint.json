@@ -210,6 +210,42 @@
         }
       },
       "required": ["userId", "grossReceipts"]
+    },
+    "UserDocument": {
+      "title": "UserDocument",
+      "description": "Generated tax documents, invoices, or computation summaries",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user identifier matching request.auth.uid",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Document title or invoice number",
+          "maxLength": 150
+        },
+        "type": {
+          "type": "string",
+          "description": "Document type (INVOICE, ITR4_SUMMARY, TAX_REPORT)",
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp in ISO format"
+        }
+      },
+      "required": ["id", "userId", "title"]
     }
   },
   "firestore": {
@@ -224,6 +260,12 @@
         "$ref": "#/entities/TaxDataRecord"
       },
       "description": "User tax profiles sub-collection storing the comprehensive financial calculation states and parameters"
+    },
+    "/users/{userId}/documents/{docId}": {
+      "schema": {
+        "$ref": "#/entities/UserDocument"
+      },
+      "description": "User documents sub-collection storing exported invoices, reports, and calculations"
     }
   }
 }

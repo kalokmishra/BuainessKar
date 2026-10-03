@@ -347,7 +347,7 @@ async function startServer() {
         data: copilotResponse,
       });
     } catch (err: any) {
-      console.error('API /api/tax/chat error, utilizing deterministic fallback:', err);
+      console.warn('API /api/tax/chat notice, utilizing deterministic fallback:', err?.message || err);
       const safeTaxData = profile?.taxData || {};
       const baseline = computeBaselineTax(safeTaxData);
       const fallbackResponse = generateDeterministicChatResponse(

@@ -74,6 +74,17 @@ service cloud.firestore {
                          incoming().userId == existing().userId;
         allow delete: if isOwner(userId) && isValidId(userId) && isValidId(profileId);
       }
+
+      // Subcollection for user's generated documents, exports, and tax invoices
+      match /documents/{docId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(docId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(docId) &&
+                         incoming().userId == userId && incoming().title is string && incoming().title.size() <= 150;
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(docId) &&
+                         incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(docId);
+      }
     }
   }
 }

@@ -150,6 +150,7 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - Enables future provider swaps (Supabase, PostgreSQL, Appwrite, AWS Cognito) via singleton Service Registry and runtime switchers `setAuthProvider()` and `setDatabaseProvider()` (`src/services/index.ts`).
   - **Firebase Auth Service (`firebaseAuthService.ts`):** Supports 1-click Google Sign-in with OAuth popups, email/mobile number credential signup/login, session restoration, and real-time auth state subscription.
   - **Cloud Firestore Database Service (`firestoreDatabaseService.ts`):** Provides persistent cloud synchronization of user profiles (`/users/{userId}`) and tax states (`/users/{userId}/taxProfiles/current`).
+  - **Zero-Trust Demo Session Protection (`localFallback`):** Routes demo users (`usr_demo_*`) and unauthenticated local guest exploration safely to `LocalDatabaseService` (localStorage), ensuring zero permission rejections while strictly enforcing zero-trust Cloud Firestore security rules for Google-authenticated users (`request.auth.uid == userId`).
   - **Local Offline Fallback Provider (`localAuthService.ts` & `localDatabaseService.ts`):** Complete zero-dependency offline fallback ensuring seamless operation in test environments, demo modes, or disconnected network states.
   - **Security Rules (`firestore.rules`) & Invariants (`security_spec.md`):** Deployed production rules enforcing default-deny, strict user-ownership validation (`request.auth.uid == userId`), path-variable sanitization, and defense against the "Dirty Dozen" malformed payload attacks.
 
@@ -169,7 +170,7 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (48 tests across 10 test suites):
+Test coverage includes (51 tests across 11 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).
@@ -181,6 +182,7 @@ Test coverage includes (48 tests across 10 test suites):
 9. Multi-head aggregate tax computation across Salary, Presumptive Business/Profession, STCG Sec 111A, LTCG Sec 112A/112, and basic exemption set-off rules.
 10. AI Tax Chat Copilot What-If simulation, entry addition, and tax minimization planning.
 11. User authentication, signup/login validation, and session persistence.
+12. Taxpayer Persona selector, CA review inquiries, and 3-option overwrite safeguard matrices.
 
 ---
 

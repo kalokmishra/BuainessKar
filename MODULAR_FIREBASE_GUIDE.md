@@ -110,6 +110,10 @@ The application implements the **Dependency Inversion Principle (DIP)**. The use
    - When a user logs in, `TaxDataContext` loads their saved cloud data from Firestore.
    - When any numbers are edited (or when the AI Tax Copilot applies an entry), changes are immediately saved to Firestore.
    - If network connectivity is lost, the local cache seamlessly protects the user's workflow without interrupting calculations.
+4. **Zero-Trust & Demo Session Routing (`localFallback`)**:
+   - Because `firestore.rules` enforces strict owner verification (`request.auth.uid == userId`), demo sessions (`usr_demo_*`) and unauthenticated local guest exploration are seamlessly routed to `LocalDatabaseService` (persisted in namespaced `localStorage`).
+   - Real Google-authenticated accounts (`auth.currentUser.uid === userId`) sync directly with Cloud Firestore.
+   - This architectural safeguard ensures demo accounts and offline visitors explore the entire app without permission rejections, while production user records remain mathematically protected under zero-trust Cloud Firestore security rules.
 
 ---
 

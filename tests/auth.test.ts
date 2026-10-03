@@ -161,6 +161,67 @@ describe('User Authentication & Session Engine', () => {
         handleFirestoreError(new Error('Missing or insufficient permissions'), OperationType.GET, 'users/123');
       }).toThrow();
     });
+
+    it('exports firebaseConfig loaded from import.meta.env.VITE_FIREBASE_* variables in AuthContext', async () => {
+      const { firebaseConfig, firebaseClientConfig } = await import('../src/context/AuthContext');
+      expect(firebaseConfig).toBeDefined();
+      expect(typeof firebaseConfig.apiKey).toBe('string');
+      expect(typeof firebaseConfig.projectId).toBe('string');
+      expect(typeof firebaseConfig.authDomain).toBe('string');
+      expect(firebaseClientConfig).toBe(firebaseConfig);
+    });
+
+    it('resolves invalid action error gracefully during Google sign-in', async () => {
+      const { services } = await import('../src/services/index');
+      // When signInWithGoogle is invoked in preview/iframe environment, it resolves cleanly without invalid action error
+      const res = await services.auth.signInWithGoogle();
+      expect(res.success).toBe(true);
+      expect(res.user).toBeDefined();
+      expect(res.user?.provider).toBe('firebase');
+      expect(res.error).toBeUndefined();
+    });
+
+    it('creates, updates, retrieves and deletes documents via DatabaseService', async () => {
+      const { services } = await import('../src/services/index');
+
+      const testDoc = {
+        userId: 'usr_demo_1',
+        title: 'Tax Invoice 2026-001',
+        type: 'INVOICE',
+        amount: 150000,
+      };
+
+      // 1. Create document
+      await services.db.createDocument('users/usr_demo_1/documents', 'inv_001', testDoc);
+      const created = await services.db.getDocument<any>('users/usr_demo_1/documents', 'inv_001');
+      expect(created).toBeDefined();
+      expect(created?.title).toBe('Tax Invoice 2026-001');
+      expect(created?.amount).toBe(150000);
+      expect(created?.createdAt).toBeDefined();
+
+      // 2. Update document
+      await services.db.updateDocument('users/usr_demo_1/documents', 'inv_001', {
+        amount: 175000,
+        status: 'PAID',
+      });
+      const updated = await services.db.getDocument<any>('users/usr_demo_1/documents', 'inv_001');
+      expect(updated?.amount).toBe(175000);
+      expect(updated?.status).toBe('PAID');
+      expect(updated?.title).toBe('Tax Invoice 2026-001');
+
+      // 3. Set document with merge
+      await services.db.setDocument('users/usr_demo_1/documents', 'inv_001', {
+        notes: 'Verified by CA',
+      }, true);
+      const merged = await services.db.getDocument<any>('users/usr_demo_1/documents', 'inv_001');
+      expect(merged?.notes).toBe('Verified by CA');
+      expect(merged?.amount).toBe(175000);
+
+      // 4. Delete document
+      await services.db.deleteDocument('users/usr_demo_1/documents', 'inv_001');
+      const deleted = await services.db.getDocument('users/usr_demo_1/documents', 'inv_001');
+      expect(deleted).toBeNull();
+    });
   });
 });
 
