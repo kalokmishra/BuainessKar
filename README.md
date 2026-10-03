@@ -43,12 +43,14 @@
    - Calculates quarterly installment targets (June 15, Sept 15, Dec 15, March 15).
    - Highlights **Section 211(1)(b) Statutory Privilege** for presumptive taxpayers (single March 15 payment deadline with exemption from Q1-Q3 Section 234C interest penalties).
 
-10. **Cross-Border Export & GST Invoice Engine (`/src/engine/invoiceExporter.ts`):**
+10. **Cross-Border Export & GST Invoice Engine with Document Management (`/src/engine/invoiceExporter.ts` & `ExportInvoiceTab.tsx`):**
     - Auto-maps Service Accounting Codes (e.g., `998314` for IT Consultancy).
     - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports.
+    - **Create & Update Document Persistence:** Save newly generated invoices as formal documents (`createDocument`), apply live edits (`updateDocument`), list persistent saved documents (`listDocuments`), and manage records stored under `users/{userId}/documents`.
 
 11. **Government ITR-4 (Sugam) JSON Mapper & Formal Tax Summary PDF Exporter (`/src/engine/itr4Schema.ts`, `/src/utils/pdfExporter.ts` & `ITR4MapperTab.tsx`):**
     - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
+    - **Cloud Filing Document Storage:** 1-click "Save Document" and "Update Document" persists your official ITR-4 filing computation state in Cloud Firestore or local sandbox.
     - **Formal Tax Summary PDF Document Export (`generateITR4SummaryPdf`):** Users can download a formal, audit-ready computation statement formatted per CBDT Form ITR-4 (Sugam) standards for AY 2027-28, complete with Assessee Profile, Schedule BP Presumptive Turnover & 5% Cash compliance check, Chapter VI-A Deductions, New vs Old Regime Tax breakdown, TDS Claimed & Net Refund/Payable calculation, Section 211 Advance Tax schedule, Bank Refund Details, and Part F Statutory Verification statement.
     - Features automated Schema Compliance Validation (`validateITR4SchemaCompliance`) checking PAN format regex, RBI IFSC bank branch validity, Nature of Business CBDT codes (e.g. 09028), primary refund account configuration, and Section 44ADA 50% profit floor checks.
     - Provides an interactive section explorer, search and filter bar, statutory guidelines, and 1-click JSON download for e-filing.
@@ -88,19 +90,29 @@
 npm install
 ```
 
-### 2. Run Development Application (Express API + Vite React UI)
+### 2. Configure Environment Variables (`.env.local`)
+
+> **Security Invariant:** All sensitive keys, Firebase credentials, and project parameters **must** be managed exclusively through environment variables. Hardcoded Firebase configurations are strictly forbidden to ensure compliance with OWASP, SOC 2, and zero-trust security standards.
+
+Create your local `.env.local` configuration from the provided `.env.example`:
+```bash
+cp .env.example .env.local
+```
+Fill in your `VITE_FIREBASE_*` configuration variables in `.env.local`. The application loads configurations through `import.meta.env` via the centralized `src/config/firebase.ts` module.
+
+### 3. Run Development Application (Express API + Vite React UI)
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 3. Run Automated Unit Test Suites
+### 4. Run Automated Unit Test Suites
 ```bash
 npm test
 ```
-Runs 48 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
+Runs 55 automated unit and integration tests across 11 test suites using Vitest covering all core engine edge cases.
 
-### 4. Build & Run Production Server
+### 5. Build & Run Production Server
 ```bash
 npm run build
 npm start

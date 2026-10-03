@@ -19,12 +19,16 @@ import {
   CheckCircle2,
   FileDown,
   Mail,
+  Save,
+  RefreshCw,
 } from 'lucide-react';
 import { generateITR4Json, validateITR4SchemaCompliance } from '../engine/itr4Schema';
 import { PresumptiveTaxResult, AdvanceTaxResult } from '../engine/types';
 import { FieldTooltip } from './FieldTooltip';
 import { generateITR4SummaryPdf } from '../utils/pdfExporter';
 import { CAReviewModal } from './CAReviewModal';
+import { useAuth } from '../context/AuthContext';
+import { databaseService } from '../services/index';
 
 interface ITR4MapperTabProps {
   presumptiveData?: PresumptiveTaxResult;
@@ -76,6 +80,58 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [activeTab, setActiveTab] = useState<'GUIDE' | 'JSON'>('GUIDE');
+
+  const { currentUser } = useAuth();
+  const [isDocSaved, setIsDocSaved] = useState<boolean>(false);
+  const [isSavingDoc, setIsSavingDoc] = useState<boolean>(false);
+  const [saveDocMsg, setSaveDocMsg] = useState<string | null>(null);
+
+  const filingDocId = `itr4_ay2027_28_${(pan || 'draft').toLowerCase()}`;
+  const userId = currentUser?.id || 'usr_guest';
+
+  const handleSaveOrUpdateDocument = async () => {
+    setIsSavingDoc(true);
+    const collectionPath = `users/${userId}/documents`;
+    const docPayload = {
+      id: filingDocId,
+      userId,
+      title: `ITR-4 Filing AY 2027-28 (${pan.toUpperCase() || 'DRAFT'})`,
+      type: 'ITR4_SUMMARY',
+      data: {
+        pan,
+        fullName,
+        businessCode,
+        tradeName,
+        grossReceipts,
+        cashReceipts,
+        tdsClaimed,
+        optedNewRegime,
+        jsonString,
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      if (!isDocSaved) {
+        await databaseService.createDocument(collectionPath, filingDocId, docPayload);
+        setIsDocSaved(true);
+        setSaveDocMsg('Filing document created in cloud!');
+      } else {
+        await databaseService.updateDocument(collectionPath, filingDocId, {
+          title: `ITR-4 Filing AY 2027-28 (${pan.toUpperCase() || 'DRAFT'})`,
+          data: docPayload.data,
+          updatedAt: new Date().toISOString(),
+        });
+        setSaveDocMsg('Filing document updated in cloud!');
+      }
+    } catch (e: any) {
+      setSaveDocMsg(`Error: ${e.message || 'Failed to save'}`);
+    } finally {
+      setIsSavingDoc(false);
+      setTimeout(() => setSaveDocMsg(null), 3000);
+    }
+  };
 
   // Fallbacks if not provided from parent evaluation
   const defaultPresumptive: PresumptiveTaxResult = presumptiveData || {
@@ -420,6 +476,23 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
               <span>Free CA Review</span>
             </button>
             <button
+              onClick={handleSaveOrUpdateDocument}
+              disabled={isSavingDoc}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl border transition-all active:scale-[0.98] cursor-pointer ${
+                isDocSaved
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+              }`}
+              title="Save or update this ITR-4 computation document in your cloud account"
+            >
+              {isDocSaved ? (
+                <RefreshCw className={`w-4 h-4 ${isSavingDoc ? 'animate-spin' : ''}`} />
+              ) : (
+                <Save className="w-4 h-4 text-emerald-400" />
+              )}
+              <span>{isDocSaved ? 'Update Document' : 'Save Document'}</span>
+            </button>
+            <button
               onClick={handleDownloadPdf}
               className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
               title="Download formal ITR-4 Sugam Tax Computation & Summary Statement PDF"
@@ -437,6 +510,13 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
             </button>
           </div>
         </div>
+
+        {saveDocMsg && (
+          <div className="mt-3 py-2 px-3 bg-emerald-950/50 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{saveDocMsg}</span>
+          </div>
+        )}
       </div>
 
       {/* SEARCH AND FILTER BAR */}

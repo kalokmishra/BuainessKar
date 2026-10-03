@@ -123,6 +123,41 @@ export class LocalDatabaseService implements IDatabaseService {
     return raw ? JSON.parse(raw) : null;
   }
 
+  async listDocuments<T extends Record<string, any>>(collectionPath: string): Promise<T[]> {
+    if (typeof localStorage === 'undefined') return [];
+    const prefix = `bk_doc_${collectionPath.replace(/\//g, '_')}_`;
+    const results: T[] = [];
+    const keys = new Set<string>();
+
+    // 1. Collect keys from Object.keys
+    try {
+      Object.keys(localStorage).forEach((k) => keys.add(k));
+    } catch {}
+
+    // 2. Collect keys via standard Storage key() indexing
+    if (typeof localStorage.length === 'number') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k) keys.add(k);
+      }
+    }
+
+    keys.forEach((key) => {
+      if (key && key.startsWith(prefix)) {
+        try {
+          const item = localStorage.getItem(key);
+          if (item) {
+            results.push(JSON.parse(item));
+          }
+        } catch (e) {
+          console.warn('Failed to parse doc item:', e);
+        }
+      }
+    });
+
+    return results;
+  }
+
   async deleteDocument(collectionPath: string, docId: string): Promise<void> {
     if (typeof localStorage === 'undefined') return;
     const key = this.getDocStorageKey(collectionPath, docId);

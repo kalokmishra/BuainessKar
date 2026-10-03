@@ -11,7 +11,7 @@ import { IAuthService, UserProfile } from '../types';
 const STORAGE_USERS_KEY = 'tax_app_registered_users_v1';
 const STORAGE_SESSION_KEY = 'tax_app_firebase_active_session_v1';
 
-const defaultUserEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'malok0207@gmail.com';
+const defaultUserEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'user@example.com';
 const defaultDemoEmail = (import.meta.env.VITE_DEFAULT_DEMO_EMAIL as string) || 'rahul@taxpro.in';
 const defaultDemoName = (import.meta.env.VITE_DEFAULT_DEMO_NAME as string) || 'Rahul Sharma';
 

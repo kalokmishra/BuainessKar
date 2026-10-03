@@ -11,8 +11,8 @@ import {
   X,
   ShieldCheck,
 } from 'lucide-react';
-import { initializeApp, getApps, getApp } from 'firebase/app';
 import { useAuth } from '../context/AuthContext';
+import { firebaseConfig, firebaseApp } from '../config/firebase';
 import { Logo } from './Logo';
 
 // Read configuration from environment variables defined in .env.local via import.meta.env
@@ -22,25 +22,7 @@ const defaultDemoName = (import.meta.env.VITE_DEFAULT_DEMO_NAME as string) || 'R
 const secondaryDemoPhone = (import.meta.env.VITE_SECONDARY_DEMO_PHONE as string) || '9876543210';
 const secondaryDemoName = (import.meta.env.VITE_SECONDARY_DEMO_NAME as string) || 'Priya (Retail Trader)';
 
-/**
- * Firebase configuration pulled directly from environment variables via import.meta.env
- * to ensure consistent initialization across the application and prevent credential exposure.
- */
-export const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || '',
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || '',
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || '',
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || '',
-  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || '',
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || '',
-  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || undefined,
-  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as string) || undefined,
-};
-
-// Ensure consistent Firebase app instance using environment variables
-export const firebaseApp = !getApps().length && firebaseConfig.apiKey
-  ? initializeApp(firebaseConfig)
-  : (getApps().length ? getApp() : null);
+export { firebaseConfig, firebaseApp };
 
 export const LoginModal: React.FC = () => {
   const { login, signup, signInWithGoogle, firebaseConfig: authFirebaseConfig } = useAuth();

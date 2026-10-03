@@ -1,11 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, ShieldCheck, Copy, Check, Info, Globe } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FileSpreadsheet,
+  ShieldCheck,
+  Copy,
+  Check,
+  Info,
+  Globe,
+  Save,
+  RefreshCw,
+  FolderOpen,
+  Trash2,
+  PlusCircle,
+  FileCheck
+} from 'lucide-react';
 import { generateInvoiceExportMetadata } from '../engine/invoiceExporter';
 import { useTaxData } from '../context/TaxDataContext';
+import { useAuth } from '../context/AuthContext';
+import { databaseService, UserDocument } from '../services/index';
 import { FieldTooltip } from './FieldTooltip';
 
 export const ExportInvoiceTab: React.FC = () => {
   const { taxData, updateTaxData } = useTaxData();
+  const { currentUser } = useAuth();
 
   const [invoiceNumber, setInvoiceNumber] = useState<string>('INV-2026-008');
   const [invoiceDate, setInvoiceDate] = useState<string>('2026-06-15');
@@ -19,6 +35,29 @@ export const ExportInvoiceTab: React.FC = () => {
   );
   const [sacCode, setSacCode] = useState<string>('998314');
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Document Persistence State
+  const [savedDocs, setSavedDocs] = useState<UserDocument[]>([]);
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const userId = currentUser?.id || 'usr_guest';
+  const collectionPath = `users/${userId}/documents`;
+
+  // Fetch saved documents
+  const loadDocuments = useCallback(async () => {
+    try {
+      const docs = await databaseService.listDocuments<UserDocument>(collectionPath);
+      setSavedDocs(docs.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')));
+    } catch (err) {
+      console.error('Error fetching documents:', err);
+    }
+  }, [collectionPath]);
+
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
 
   useEffect(() => {
     setIsExport(taxData.isExport);
@@ -50,6 +89,135 @@ export const ExportInvoiceTab: React.FC = () => {
       },
     ],
   });
+
+  const getDocIdForInvoice = (num: string) => {
+    const sanitized = num.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+    return `inv_${sanitized || Date.now()}`;
+  };
+
+  // 1. CREATE DOCUMENT
+  const handleCreateDocument = async () => {
+    if (!invoiceNumber.trim()) {
+      setStatusMessage({ text: 'Invoice number is required to save document', type: 'error' });
+      return;
+    }
+    setIsProcessing(true);
+    const docId = getDocIdForInvoice(invoiceNumber);
+    try {
+      const payload: UserDocument = {
+        id: docId,
+        userId,
+        title: `${invoiceNumber} - ${recipientName}`,
+        type: 'INVOICE',
+        data: {
+          invoiceNumber,
+          invoiceDate,
+          recipientName,
+          isExport,
+          lutNumber,
+          currency,
+          exchangeRate,
+          itemAmountUSD,
+          sacCode,
+          totalTaxableAmountINR: metadata.totalTaxableAmountINR,
+          metadata,
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await databaseService.createDocument(collectionPath, docId, payload);
+      setEditingDocId(docId);
+      setStatusMessage({ text: `Document "${payload.title}" created successfully!`, type: 'success' });
+      await loadDocuments();
+    } catch (err: any) {
+      setStatusMessage({ text: `Failed to create document: ${err.message || 'Error'}`, type: 'error' });
+    } finally {
+      setIsProcessing(false);
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  // 2. UPDATE DOCUMENT
+  const handleUpdateDocument = async () => {
+    const targetDocId = editingDocId || getDocIdForInvoice(invoiceNumber);
+    setIsProcessing(true);
+    try {
+      const updateData = {
+        title: `${invoiceNumber} - ${recipientName}`,
+        data: {
+          invoiceNumber,
+          invoiceDate,
+          recipientName,
+          isExport,
+          lutNumber,
+          currency,
+          exchangeRate,
+          itemAmountUSD,
+          sacCode,
+          totalTaxableAmountINR: metadata.totalTaxableAmountINR,
+          metadata,
+        },
+        updatedAt: new Date().toISOString(),
+      };
+
+      await databaseService.updateDocument(collectionPath, targetDocId, updateData);
+      setEditingDocId(targetDocId);
+      setStatusMessage({ text: `Document "${updateData.title}" updated successfully!`, type: 'success' });
+      await loadDocuments();
+    } catch (err: any) {
+      setStatusMessage({ text: `Failed to update document: ${err.message || 'Error'}`, type: 'error' });
+    } finally {
+      setIsProcessing(false);
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  // Load an existing document into the editor
+  const handleLoadDocument = (doc: UserDocument) => {
+    if (doc.data) {
+      if (doc.data.invoiceNumber) setInvoiceNumber(doc.data.invoiceNumber);
+      if (doc.data.invoiceDate) setInvoiceDate(doc.data.invoiceDate);
+      if (doc.data.recipientName) setRecipientName(doc.data.recipientName);
+      if (typeof doc.data.isExport === 'boolean') setIsExport(doc.data.isExport);
+      if (doc.data.lutNumber) setLutNumber(doc.data.lutNumber);
+      if (doc.data.currency) setCurrency(doc.data.currency);
+      if (doc.data.exchangeRate) setExchangeRate(doc.data.exchangeRate);
+      if (typeof doc.data.itemAmountUSD === 'number') setItemAmountUSD(doc.data.itemAmountUSD);
+      if (doc.data.sacCode) setSacCode(doc.data.sacCode);
+    }
+    setEditingDocId(doc.id);
+    setStatusMessage({ text: `Loaded document "${doc.title}" for editing.`, type: 'info' });
+    setTimeout(() => setStatusMessage(null), 3000);
+  };
+
+  // Delete document
+  const handleDeleteDocument = async (docId: string, title: string) => {
+    if (!window.confirm(`Delete document "${title}"?`)) return;
+    setIsProcessing(true);
+    try {
+      await databaseService.deleteDocument(collectionPath, docId);
+      if (editingDocId === docId) {
+        setEditingDocId(null);
+      }
+      setStatusMessage({ text: `Document "${title}" deleted.`, type: 'info' });
+      await loadDocuments();
+    } catch (err: any) {
+      setStatusMessage({ text: `Failed to delete document: ${err.message || 'Error'}`, type: 'error' });
+    } finally {
+      setIsProcessing(false);
+      setTimeout(() => setStatusMessage(null), 3000);
+    }
+  };
+
+  // Reset form to create fresh document
+  const handleResetForm = () => {
+    setEditingDocId(null);
+    setInvoiceNumber(`INV-2026-00${savedDocs.length + 9}`);
+    setRecipientName('New Enterprise Client');
+    setStatusMessage({ text: 'Form reset for new document creation.', type: 'info' });
+    setTimeout(() => setStatusMessage(null), 2000);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(metadata, null, 2));
@@ -234,6 +402,76 @@ export const ExportInvoiceTab: React.FC = () => {
               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
             />
           </div>
+
+          {/* Document Operations Toolbar */}
+          <div className="pt-3 border-t border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Cloud Document Management</span>
+              </span>
+              {editingDocId && (
+                <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full font-mono">
+                  Editing: {editingDocId}
+                </span>
+              )}
+            </div>
+
+            {statusMessage && (
+              <div
+                className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
+                  statusMessage.type === 'success'
+                    ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                    : statusMessage.type === 'error'
+                    ? 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                    : 'bg-blue-950/50 border-blue-500/40 text-blue-300'
+                }`}
+              >
+                <span>{statusMessage.text}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleCreateDocument}
+                disabled={isProcessing}
+                className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-3 rounded-xl text-xs transition shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save New Document</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUpdateDocument}
+                disabled={isProcessing}
+                className={`flex items-center justify-center gap-1.5 font-medium py-2 px-3 rounded-xl text-xs transition border cursor-pointer ${
+                  editingDocId
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                } disabled:opacity-50`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
+                <span>Update Document</span>
+              </button>
+            </div>
+
+            <div className="flex justify-between items-center pt-1">
+              <button
+                type="button"
+                onClick={handleResetForm}
+                className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer transition"
+              >
+                <PlusCircle className="w-3 h-3" />
+                <span>Create Fresh Invoice</span>
+              </button>
+
+              <span className="text-[10px] text-slate-500">
+                Storage: {currentUser?.provider === 'firebase' ? 'Firebase Firestore' : 'Local Sandbox'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Generated Invoice Metadata Column */}
@@ -316,6 +554,114 @@ export const ExportInvoiceTab: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Saved Documents Section */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <FolderOpen className="w-5 h-5 text-emerald-400" />
+            <div>
+              <h3 className="text-sm font-bold text-slate-100">Saved Invoices & Documents Collection</h3>
+              <p className="text-xs text-slate-400">
+                Persistent records stored at <code className="text-emerald-300 font-mono text-[11px]">users/{'{userId}'}/documents</code>
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-medium px-2.5 py-1 bg-slate-800 rounded-full text-slate-300 border border-slate-700">
+            {savedDocs.length} {savedDocs.length === 1 ? 'Document' : 'Documents'} Saved
+          </span>
+        </div>
+
+        {savedDocs.length === 0 ? (
+          <div className="text-center py-8 px-4 bg-slate-950/60 rounded-xl border border-dashed border-slate-800">
+            <FileSpreadsheet className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+            <p className="text-xs text-slate-300 font-medium">No saved documents yet</p>
+            <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+              Click "Save New Document" above to persist your export invoice with full SAC code, LUT disclaimers, and currency conversions.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 font-medium">
+                  <th className="pb-2">Invoice / Title</th>
+                  <th className="pb-2">Client</th>
+                  <th className="pb-2">Type</th>
+                  <th className="pb-2">Value (INR)</th>
+                  <th className="pb-2">Last Updated</th>
+                  <th className="pb-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {savedDocs.map((doc) => (
+                  <tr
+                    key={doc.id}
+                    className={`hover:bg-slate-800/40 transition ${
+                      editingDocId === doc.id ? 'bg-emerald-950/20' : ''
+                    }`}
+                  >
+                    <td className="py-2.5 font-medium text-slate-200">
+                      <div className="flex items-center gap-1.5">
+                        {editingDocId === doc.id && (
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        )}
+                        <span>{doc.data?.invoiceNumber || doc.title}</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 text-slate-300">
+                      {doc.data?.recipientName || '—'}
+                    </td>
+                    <td className="py-2.5">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                        {doc.type}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-emerald-400 font-mono">
+                      {doc.data?.totalTaxableAmountINR ? formatINR(doc.data.totalTaxableAmountINR) : '—'}
+                    </td>
+                    <td className="py-2.5 text-slate-400 text-[11px]">
+                      {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString('en-IN') : '—'}
+                    </td>
+                    <td className="py-2.5 text-right space-x-1.5 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleLoadDocument(doc)}
+                        className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-medium transition cursor-pointer border border-slate-700"
+                        title="Load document parameters into editor"
+                      >
+                        Load to Edit
+                      </button>
+
+                      {editingDocId === doc.id && (
+                        <button
+                          type="button"
+                          onClick={handleUpdateDocument}
+                          disabled={isProcessing}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-medium transition cursor-pointer"
+                          title="Save current modifications to this document"
+                        >
+                          Update
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument(doc.id, doc.title)}
+                        disabled={isProcessing}
+                        className="p-1 hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 rounded transition cursor-pointer"
+                        title="Delete document"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 inline" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

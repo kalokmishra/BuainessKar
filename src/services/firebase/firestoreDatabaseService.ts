@@ -4,6 +4,8 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  collection,
+  getDocs,
   onSnapshot,
 } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from './firebaseConfig';
@@ -216,6 +218,24 @@ export class FirestoreDatabaseService implements IDatabaseService {
       return null;
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
+    }
+  }
+
+  /**
+   * Retrieves all documents in a collection path.
+   */
+  async listDocuments<T extends Record<string, any>>(collectionPath: string): Promise<T[]> {
+    const userId = collectionPath.startsWith('users/') ? collectionPath.split('/')[1] : undefined;
+    if (this.shouldUseLocal(userId)) {
+      return this.localFallback.listDocuments<T>(collectionPath);
+    }
+    const path = collectionPath;
+    try {
+      const colRef = collection(db, collectionPath);
+      const snap = await getDocs(colRef);
+      return snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as unknown as T));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, path);
     }
   }
 

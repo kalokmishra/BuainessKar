@@ -14,6 +14,13 @@ const localStorageMock = (() => {
     clear: () => {
       store = {};
     },
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: (index: number) => {
+      const keys = Object.keys(store);
+      return keys[index] || null;
+    },
   };
 })();
 
@@ -163,12 +170,24 @@ describe('User Authentication & Session Engine', () => {
     });
 
     it('exports firebaseConfig loaded from import.meta.env.VITE_FIREBASE_* variables in AuthContext', async () => {
-      const { firebaseConfig, firebaseClientConfig } = await import('../src/context/AuthContext');
+      const { firebaseConfig, firebaseClientConfig, firebaseApp, firebaseAuth, firebaseDb } = await import('../src/context/AuthContext');
       expect(firebaseConfig).toBeDefined();
       expect(typeof firebaseConfig.apiKey).toBe('string');
       expect(typeof firebaseConfig.projectId).toBe('string');
       expect(typeof firebaseConfig.authDomain).toBe('string');
       expect(firebaseClientConfig).toBe(firebaseConfig);
+      expect(firebaseApp).toBeDefined();
+      expect(firebaseAuth).toBeDefined();
+      expect(firebaseDb).toBeDefined();
+    });
+
+    it('initializes centralized Firebase instance in src/config/firebase using import.meta.env', async () => {
+      const configFirebase = await import('../src/config/firebase');
+      expect(configFirebase.app).toBeDefined();
+      expect(configFirebase.auth).toBeDefined();
+      expect(configFirebase.db).toBeDefined();
+      expect(configFirebase.firebaseConfig).toBeDefined();
+      expect(typeof configFirebase.firebaseConfig.apiKey).toBe('string');
     });
 
     it('resolves invalid action error gracefully during Google sign-in', async () => {
@@ -216,6 +235,11 @@ describe('User Authentication & Session Engine', () => {
       const merged = await services.db.getDocument<any>('users/usr_demo_1/documents', 'inv_001');
       expect(merged?.notes).toBe('Verified by CA');
       expect(merged?.amount).toBe(175000);
+
+      // List documents in collection
+      const list = await services.db.listDocuments<any>('users/usr_demo_1/documents');
+      expect(list.length).toBeGreaterThanOrEqual(1);
+      expect(list.some((d) => d.id === 'inv_001' || d.title === 'Tax Invoice 2026-001')).toBe(true);
 
       // 4. Delete document
       await services.db.deleteDocument('users/usr_demo_1/documents', 'inv_001');

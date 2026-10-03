@@ -1,44 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import {
-  firebaseConfig as baseFirebaseConfig,
-  app as baseApp,
-  auth as baseAuth,
-  db as baseDb,
-} from '../firebase';
+  firebaseConfig,
+  firebaseClientConfig,
+  app as firebaseApp,
+  auth as firebaseAuth,
+  db as firebaseDb,
+  firestore,
+} from '../config/firebase';
 import { services, UserProfile } from '../services';
 
-/**
- * Firebase configuration imported using import.meta.env.VITE_FIREBASE_* variables
- * instead of hardcoded strings to ensure secure, environment-based initialization.
- */
-export const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || baseFirebaseConfig.apiKey || '',
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || baseFirebaseConfig.authDomain || '',
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || baseFirebaseConfig.projectId || '',
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || baseFirebaseConfig.storageBucket || '',
-  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || baseFirebaseConfig.messagingSenderId || '',
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || baseFirebaseConfig.appId || '',
-  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || baseFirebaseConfig.measurementId || undefined,
-  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as string) || undefined,
+// Re-export centralized Firebase configuration and instances
+export {
+  firebaseConfig,
+  firebaseClientConfig,
+  firebaseApp,
+  firebaseAuth,
+  firebaseDb,
+  firestore,
+  firebaseApp as app,
+  firebaseAuth as auth,
+  firebaseDb as db,
 };
 
-// Export alias for client configuration
-export const firebaseClientConfig = firebaseConfig;
-
-// Initialize or retrieve active Firebase instance using environment variables
-export const firebaseApp: FirebaseApp = !getApps().length
-  ? initializeApp(firebaseConfig)
-  : (baseApp || getApp());
-
-export const firebaseAuth: Auth = baseAuth || getAuth(firebaseApp);
-export const firebaseDb: Firestore = firebaseConfig.firestoreDatabaseId
-  ? getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId)
-  : (baseDb || getFirestore(firebaseApp));
-
-export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db, firebaseDb as firestore };
+// Environment-based user fallback loaded via import.meta.env
+const defaultUserEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'user@example.com';
+const defaultUserName = (import.meta.env.VITE_DEFAULT_USER_NAME as string) || 'Google Taxpayer (Assessee)';
 
 export interface User {
   id: string;
@@ -116,10 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // In non-whitelisted preview environments or iframes, bypass popup failure and provide instant verified Google session
       if (!isWhitelistedOrigin || isInIframe) {
-        const userEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'malok0207@gmail.com';
+        const userEmail = defaultUserEmail;
         const userObj: User = {
           id: 'usr_google_assessee',
-          name: 'Google Taxpayer (Assessee)',
+          name: defaultUserName,
           identifier: userEmail,
           email: userEmail,
           photoURL: 'https://lh3.googleusercontent.com/a/default-user',
@@ -155,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fbUser = result.user;
         const userObj: User = {
           id: fbUser.uid,
-          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Taxpayer Assessee',
+          name: fbUser.displayName || fbUser.email?.split('@')[0] || defaultUserName,
           identifier: fbUser.email || fbUser.uid,
           email: fbUser.email || '',
           photoURL: fbUser.photoURL || undefined,
@@ -173,10 +160,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (popupErr: any) {
         // If popup triggers "The requested action is invalid" or is blocked by browser, fallback safely
         console.warn('Firebase popup error, applying safe fallback:', popupErr);
-        const userEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'malok0207@gmail.com';
+        const userEmail = defaultUserEmail;
         const userObj: User = {
           id: 'usr_google_assessee',
-          name: 'Google Taxpayer (Assessee)',
+          name: defaultUserName,
           identifier: userEmail,
           email: userEmail,
           photoURL: 'https://lh3.googleusercontent.com/a/default-user',
@@ -189,10 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err: any) {
       console.warn('Google Sign-in error:', err);
-      const userEmail = (import.meta.env.VITE_DEFAULT_USER_EMAIL as string) || 'malok0207@gmail.com';
+      const userEmail = defaultUserEmail;
       const userObj: User = {
         id: 'usr_google_assessee',
-        name: 'Google Taxpayer (Assessee)',
+        name: defaultUserName,
         identifier: userEmail,
         email: userEmail,
         photoURL: 'https://lh3.googleusercontent.com/a/default-user',

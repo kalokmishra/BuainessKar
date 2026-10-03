@@ -231,3 +231,49 @@ The test suite includes dedicated tests in `tests/auth.test.ts` verifying:
 2. Abstract contract compliance for `IAuthService` and `IDatabaseService`.
 3. Standardized Firestore error reporting conforming to `FirestoreErrorInfo` and `OperationType`.
 4. Graceful offline fallback to `LocalAuthService` and `LocalDatabaseService` when cloud services are unreachable.
+5. Export of centralized `firebaseConfig` and initialization via `import.meta.env.VITE_FIREBASE_*` variables.
+
+---
+
+## 7. Security Compliance & Environment-Based Configuration (`.env.local`)
+
+### 7.1 Mandatory Environment Variable Management
+
+All sensitive keys, API secrets, project identifiers, and Firebase parameters **must** be managed strictly through environment variables. Hardcoding credentials in source code is strictly prohibited.
+
+#### Developer Setup Step: Creating `.env.local`
+All developers must initialize their environment from the version-controlled template:
+```bash
+# 1. Copy the example configuration
+cp .env.example .env.local
+
+# 2. Populate environment variables in .env.local
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789012
+VITE_FIREBASE_APP_ID=1:123456789012:web:abcdef...
+VITE_FIREBASE_MEASUREMENT_ID=G-ABCDEF1234
+VITE_FIREBASE_FIRESTORE_DATABASE_ID=your-database-id
+```
+
+### 7.2 Why Hardcoded Firebase Configurations Are Strictly Forbidden
+
+To maintain strict security compliance across enterprise standards (OWASP, SOC 2, ISO 27001), hardcoding Firebase configurations is strictly forbidden for the following reasons:
+
+1. **Permanent Version Control Exposure**:
+   - Hardcoded strings committed to git remain forever in commit histories, branches, pull request diffs, and developer forks. Leaked keys are immediately harvested by automated credential scrapers.
+
+2. **Compliance & Audit Failures**:
+   - Compliance frameworks (SOC 2, ISO 27001, OWASP Top 10) mandate segregation of secrets from application logic. Hardcoded secrets trigger immediate automated SAST/linter build rejections.
+
+3. **Environment Isolation & Data Integrity**:
+   - Local testing, CI pipelines, preview deployments, and production require isolated databases and authentication realms. Hardcoded configs risk accidental data overwrites and test pollution in production.
+
+4. **Zero-Downtime Key Rotation**:
+   - In incident response or routine credential rotation, environment variables permit instant key replacement in platform dashboards (Vercel, Cloud Run) without requiring code modifications, PR reviews, or redeployment builds.
+
+5. **Centralized Architectural Single Point of Truth (`src/config/firebase.ts`)**:
+   - All Firebase instances are initialized exclusively in `src/config/firebase.ts` and consumed via `AuthContext.tsx`. No individual UI component or service may define or hardcode separate Firebase options.
+

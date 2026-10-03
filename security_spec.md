@@ -35,3 +35,12 @@ This specification defines the Access Control & Data Invariants for Businesskar 
 ## 3. Test Runner Specification (`firestore.rules.test.ts`)
 
 The rules enforce that all operations by unauthorized or unauthenticated users, as well as mismatched path/owner operations, return `PERMISSION_DENIED`.
+
+---
+
+## 4. Key Management & Environment Compliance Invariant
+
+1. **Zero Hardcoded Secrets**: All Firebase API keys, project identifiers, and credentials must be injected strictly via environment variables (`import.meta.env.VITE_FIREBASE_*`).
+2. **Prohibition of Hardcoded Configurations**: Hardcoding credentials or configuration objects in source code is strictly prohibited to ensure compliance with OWASP, SOC 2, and ISO 27001 standards.
+3. **Local Developer Setup**: Developers must create `.env.local` from `.env.example`. `.env.local` is strictly ignored by version control.
+
