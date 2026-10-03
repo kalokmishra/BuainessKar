@@ -19,16 +19,30 @@ import {
   Layers,
   HelpCircle,
   Database,
+  Users,
 } from 'lucide-react';
 import { useTaxData, TaxDataState, ZERO_TAX_DATA, DEMO_TAX_DATA } from '../context/TaxDataContext';
 import { ProfessionCategory, BusinessCategory, EntityType } from '../engine/types';
+import { PersonaSelectorStep, PersonaItem } from './PersonaSelectorStep';
+import { ProfileOverwriteModal } from './ProfileOverwriteModal';
 
 export const GuidedOnboardingTour: React.FC = () => {
-  const { taxData, updateTaxData, resetToZeros, closeTour, isTourOpen } = useTaxData();
+  const { taxData, updateTaxData, resetToZeros, closeTour, isTourOpen, tourInitialStep, navigateTab } = useTaxData();
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('selectedPersona');
+    } catch {
+      return null;
+    }
+  });
+  const [targetTab, setTargetTab] = useState<string | null>(null);
+
   const [showExitConfirmModal, setShowExitConfirmModal] = useState<boolean>(false);
   const [showResetAllConfirmModal, setShowResetAllConfirmModal] = useState<boolean>(false);
+  const [showOverwriteModal, setShowOverwriteModal] = useState<boolean>(false);
+  const [pendingPersona, setPendingPersona] = useState<PersonaItem | null>(null);
   const [resetNotification, setResetNotification] = useState<string | null>(null);
 
   // Draft state initialized from current taxData
@@ -38,9 +52,21 @@ export const GuidedOnboardingTour: React.FC = () => {
   useEffect(() => {
     if (isTourOpen) {
       setDraft({ ...taxData });
-      setCurrentStep(1);
+
+      if (tourInitialStep !== null && tourInitialStep !== undefined) {
+        setCurrentStep(tourInitialStep);
+      } else {
+        const hasSeenPersona = localStorage.getItem('personaSelectorSeen');
+        // First visit: show Persona Selector (Step 0)
+        // Returning visits: skip Persona Selector, jump straight to Wizard Step 1
+        if (!hasSeenPersona) {
+          setCurrentStep(0);
+        } else {
+          setCurrentStep(1);
+        }
+      }
     }
-  }, [isTourOpen, taxData]);
+  }, [isTourOpen, taxData, tourInitialStep]);
 
   // Update draft helper
   const updateDraft = (updates: Partial<TaxDataState>) => {
@@ -117,8 +143,74 @@ export const GuidedOnboardingTour: React.FC = () => {
 
   // Restart Tour from Beginning
   const handleRestartTourFromBeginning = () => {
-    setCurrentStep(1);
+    setCurrentStep(0);
     setDraft({ ...taxData });
+  };
+
+  // Apply Persona Demo Values into draft and proceed to Step 1
+  const applyPersona = (persona: PersonaItem) => {
+    try {
+      localStorage.setItem('selectedPersona', persona.id);
+      localStorage.setItem('preferredTab', persona.defaultTab);
+      localStorage.setItem('personaSelectorSeen', 'true');
+    } catch (e) {
+      console.warn(e);
+    }
+    setSelectedPersonaId(persona.id);
+    setTargetTab(persona.defaultTab);
+
+    if (persona.demoValues) {
+      updateDraft({
+        ...persona.demoValues,
+        isDemoDataLoaded: false,
+      });
+      setResetNotification(`Loaded ${persona.title} starting profile into wizard.`);
+      setTimeout(() => setResetNotification(null), 3500);
+    }
+
+    setCurrentStep(1);
+  };
+
+  // Select Persona Handler: Triggers 3-option Overwrite Safeguard if user already has non-zero custom data
+  const handlePersonaSelect = (persona: PersonaItem) => {
+    const hasExistingData =
+      (Number(taxData.grossReceipts) > 0) ||
+      (Number(taxData.grossSalary) > 0) ||
+      (Number(taxData.stcgEquity) > 0) ||
+      (Number(taxData.ltcgEquity) > 0);
+
+    if (hasExistingData && persona.demoValues) {
+      setPendingPersona(persona);
+      setShowOverwriteModal(true);
+    } else {
+      applyPersona(persona);
+    }
+  };
+
+  // Handle overwrite modal choice: replace, compare, or cancel
+  const handleOverwriteOption = (choice: 'replace' | 'compare' | 'cancel') => {
+    if (choice === 'replace' && pendingPersona) {
+      applyPersona(pendingPersona);
+      setShowOverwriteModal(false);
+      setPendingPersona(null);
+    } else if (choice === 'cancel') {
+      setShowOverwriteModal(false);
+      setPendingPersona(null);
+    }
+  };
+
+  // Skip Persona Handler
+  const handleSkipPersona = () => {
+    try {
+      localStorage.setItem('personaSelectorSeen', 'true');
+      localStorage.setItem('skippedPersonaSelector', 'true');
+      localStorage.removeItem('selectedPersona');
+      localStorage.removeItem('preferredTab');
+    } catch (e) {
+      console.warn(e);
+    }
+    setTargetTab(null);
+    setCurrentStep(1);
   };
 
   // Load Sample Demo Data into Tour Wizard
@@ -132,7 +224,7 @@ export const GuidedOnboardingTour: React.FC = () => {
   const handleConfirmResetAll = () => {
     resetToZeros();
     setDraft({ ...ZERO_TAX_DATA });
-    setCurrentStep(1);
+    setCurrentStep(0);
     setShowResetAllConfirmModal(false);
     setResetNotification('All tax fields have been reset to 0.');
     setTimeout(() => setResetNotification(null), 3500);
@@ -148,7 +240,9 @@ export const GuidedOnboardingTour: React.FC = () => {
     closeTour();
   };
 
-  // Complete & Save Setup
+  // Complete & Save Setup with smart tab routing:
+  // - If persona selected: route to persona's defaultTab (preferredTab), then clear preferredTab
+  // - If persona skipped: route to user's lastVisitedTab (or default 'calculator')
   const handleCompleteSetup = () => {
     updateTaxData({
       ...draft,
@@ -156,20 +250,38 @@ export const GuidedOnboardingTour: React.FC = () => {
       isDemoDataLoaded: false,
     });
     closeTour();
+
+    const preferredTab = localStorage.getItem('preferredTab');
+    if (preferredTab) {
+      localStorage.removeItem('preferredTab');
+      navigateTab(preferredTab as any);
+    } else {
+      const lastVisited = localStorage.getItem('lastVisitedTab');
+      if (lastVisited) {
+        navigateTab(lastVisited as any);
+      } else if (targetTab) {
+        navigateTab(targetTab as any);
+      } else {
+        navigateTab('calculator');
+      }
+    }
   };
 
   const formatINR = (val: number) => `₹${(Number(val) || 0).toLocaleString('en-IN')}`;
 
   const stepsInfo = [
-    { num: 1, title: 'Entity & Presumptive Income' },
-    { num: 2, title: 'Multi-Head Income Sources' },
-    { num: 3, title: 'Deductions & Tax Credits' },
-    { num: 4, title: 'GST, Export & Advance Tax' },
+    { num: 0, title: 'Choose Your Persona (Optional)', shortTitle: '0. Persona' },
+    { num: 1, title: 'Entity & Presumptive Income', shortTitle: '1. Entity & Receipts' },
+    { num: 2, title: 'Multi-Head Income Sources', shortTitle: '2. Multi-Head' },
+    { num: 3, title: 'Deductions & Tax Credits', shortTitle: '3. Deductions' },
+    { num: 4, title: 'GST, Export & Advance Tax', shortTitle: '4. Advance Tax & GST' },
   ];
 
   if (!isTourOpen) {
     return null;
   }
+
+  const currentStepMeta = stepsInfo.find((s) => s.num === currentStep) || stepsInfo[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
@@ -185,11 +297,11 @@ export const GuidedOnboardingTour: React.FC = () => {
                 <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
                   <span>Guided Tax Setup Wizard</span>
                   <span className="text-xs bg-emerald-500/20 text-emerald-300 font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    Step {currentStep} of 4
+                    {currentStep === 0 ? 'Step 0 of 4 (Optional)' : `Step ${currentStep} of 4`}
                   </span>
                 </h2>
                 <p className="text-xs text-slate-400">
-                  {stepsInfo[currentStep - 1].title}
+                  {currentStepMeta.title}
                 </p>
               </div>
             </div>
@@ -235,17 +347,17 @@ export const GuidedOnboardingTour: React.FC = () => {
           <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
             <div
               className="bg-emerald-500 h-full transition-all duration-300 ease-out"
-              style={{ width: `${(currentStep / 4) * 100}%` }}
+              style={{ width: `${currentStep === 0 ? 10 : (currentStep / 4) * 100}%` }}
             />
           </div>
 
           {/* Step Indicator Badges */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 pt-1">
             {stepsInfo.map((s) => (
               <button
                 key={s.num}
                 onClick={() => setCurrentStep(s.num)}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border text-left transition-all truncate flex items-center gap-1.5 ${
+                className={`text-[11px] font-medium px-2 py-1 rounded-lg border text-left transition-all truncate flex items-center gap-1.5 ${
                   s.num === currentStep
                     ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-300 font-bold'
                     : s.num < currentStep
@@ -254,9 +366,9 @@ export const GuidedOnboardingTour: React.FC = () => {
                 }`}
               >
                 <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] shrink-0 font-bold">
-                  {s.num < currentStep ? '✓' : s.num}
+                  {s.num < currentStep && s.num > 0 ? '✓' : s.num}
                 </span>
-                <span className="truncate">{s.title}</span>
+                <span className="truncate">{s.shortTitle}</span>
               </button>
             ))}
           </div>
@@ -264,6 +376,15 @@ export const GuidedOnboardingTour: React.FC = () => {
 
         {/* Modal Step Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-200">
+          {/* STEP 0: Persona Selector Step */}
+          {currentStep === 0 && (
+            <PersonaSelectorStep
+              selectedPersonaId={selectedPersonaId}
+              onSelectPersona={handlePersonaSelect}
+              onSkip={handleSkipPersona}
+            />
+          )}
+
           {/* STEP 1: Entity & Presumptive Income */}
           {currentStep === 1 && (
             <div className="space-y-6">
@@ -1068,6 +1189,17 @@ export const GuidedOnboardingTour: React.FC = () => {
 
           {/* Right: Step Navigation */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {currentStep === 1 && (
+              <button
+                onClick={() => setCurrentStep(0)}
+                className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3 py-2 rounded-xl transition-all"
+                title="Return to Persona Selection"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Persona Selection</span>
+              </button>
+            )}
+
             {currentStep > 1 && (
               <button
                 onClick={() => setCurrentStep((prev) => prev - 1)}
@@ -1078,7 +1210,15 @@ export const GuidedOnboardingTour: React.FC = () => {
               </button>
             )}
 
-            {currentStep < 4 ? (
+            {currentStep === 0 ? (
+              <button
+                onClick={handleSkipPersona}
+                className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md cursor-pointer"
+              >
+                <span>Go to Step 1</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : currentStep < 4 ? (
               <button
                 onClick={() => setCurrentStep((prev) => prev + 1)}
                 className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md cursor-pointer"
@@ -1175,6 +1315,18 @@ export const GuidedOnboardingTour: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 3-Option Profile Overwrite Safeguard Modal */}
+      <ProfileOverwriteModal
+        isOpen={showOverwriteModal}
+        persona={pendingPersona}
+        currentData={taxData}
+        onOption={handleOverwriteOption}
+        onClose={() => {
+          setShowOverwriteModal(false);
+          setPendingPersona(null);
+        }}
+      />
     </div>
   );
 };

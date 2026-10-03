@@ -1,13 +1,13 @@
-# 📘 Businessकर: Freelancer & Presumptive Tax Engine
+# Businesskar: Freelancer & Presumptive Tax Engine
 ## End-User Feature & Value Guide (AY 2027-28 / FY 2026-27)
 
 ---
 
-## 🌟 Executive Overview: Why Businessकर?
+## 🌟 Executive Overview: Why Businesskar?
 
 Filing income tax as an Indian freelancer, independent consultant, software professional, or small business owner is often confusing, time-consuming, and risky. Managing complex tax regulations like **Section 44ADA**, **Section 44AD**, quarterly **Advance Tax penalties under Section 234C**, **Capital Gains taxes (STCG & LTCG)**, and **Cash Deposit limits** can lead to overpaying taxes or facing scrutiny from the Income Tax Department.
 
-**Businessकर** is a complete, rules-as-code Tax Computation and Compliance Portal engineered specifically for modern Indian professionals. Whether you earn through domestic freelance contracts, salary plus freelance work, international client exports, or stock market investments, **Businessकर** calculates your exact tax liability, optimizes your tax regime selection, monitors banking surveillance risks, and exports official **ITR-4 (Sugam) JSON payloads** for 1-click filing.
+**Businesskar** is a complete, rules-as-code Tax Computation and Compliance Portal engineered specifically for modern Indian professionals. Whether you earn through domestic freelance contracts, salary plus freelance work, international client exports, or stock market investments, **Businesskar** calculates your exact tax liability, optimizes your tax regime selection, monitors banking surveillance risks, and exports official **ITR-4 (Sugam) JSON payloads** for 1-click filing.
 
 ---
 
@@ -37,20 +37,18 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 * **In-Wizard Reset & Demo Data Tools**:
   * **In-Wizard Demo Data**: Click **"Load Demo Data"** directly inside the Guided Setup Tour modal (available in both header and bottom toolbar) to instantly populate realistic sample figures (₹48 Lakhs receipts, salary, capital gains) so you can review and customize entries step-by-step.
   * **In-Wizard Reset to 0**: Click **"Reset All to 0"** inside the Guided Setup Tour wizard (featuring a clear confirmation modal) to clear all income, deduction, and advance tax fields back to clean zero values across the tour and application anytime without cluttering main screen headers.
+* **Hover-Based Field Tooltips**: Every input field across the calculator tabs features an interactive tooltip icon (`?`) that displays statutory income tax rules, section numbers, and percentage limits upon hover or touch.
+* **Interactive Tax Glossary Drawer**: Click the **"Tax Glossary"** button in the top header to open a slide-out info drawer providing plain-English definitions, statutory section references, real-world examples, and search filtering for complex tax jargon (e.g., 44ADA, Deemed Profit, 5% Cash Rule, 234C Penalty, LUT Export, Standard Deduction).
+* **Automatic Top Scroll Navigation**: Switching between navigation tabs automatically returns the window scroll position directly to the top of the page so you can immediately view header metrics and primary content without manual scrolling.
 * **Real-Time Cross-Tab Synchronization**: Updating tax data in the wizard or any tab automatically reflects across all calculator views simultaneously.
 
 ---
 
-### 2. 🔐 Modular Authentication, Google Sign-in & Firestore Cloud Persistence
-* **Google Sign-In with Firebase Auth**: Log in seamlessly with 1 click using **"Continue with Google"**. Supports Google account authentication with automatic avatar and profile synchronization.
-* **Firestore Cloud Persistence**: All your profile information and active tax calculation numbers are automatically saved to your private cloud record in **Firebase Firestore** (`/users/{userId}/taxProfiles/current`). Your numbers sync in real-time across your browser sessions and devices.
-* **Modular Provider Architecture**: The application uses abstract `IAuthService` and `IDatabaseService` interfaces, meaning your underlying database or auth provider can be effortlessly migrated to another provider (Supabase, PostgreSQL, Auth0) anytime as requirements evolve.
-* **Flexible Demo / Credential Accounts**: Also supports instant Email/Mobile demo accounts (`rahul@taxpro.in` / `9876543210`) with local caching so you can explore all features immediately.
-* **Instant Session Gatekeeper**: Ensures your sensitive financial inputs and tax plans are secure, private, and mathematically protected by Firestore security rules.
-* **Header Profile Dropdown & Cloud Status**: Clicking your profile avatar in the top right displays your identity, active provider status, and confirms that **Firestore Data Sync is Active**. Includes a 1-click **Logout** action.
-* **Automatic Top Scroll Navigation**: Switching between navigation tabs automatically returns the window scroll position directly to the top of the page so you can immediately view header metrics and primary content without manual scrolling.
-* **Hover-Based Field Tooltips**: Every input field across the calculator tabs features an interactive tooltip icon (`?`) that displays statutory income tax rules, section numbers, and percentage limits upon hover or touch.
-* **Interactive Tax Glossary Drawer**: Click the **"Tax Glossary"** button in the top header to open a slide-out info drawer providing plain-English definitions, statutory section references, real-world examples, and search filtering for complex tax jargon (e.g., 44ADA, Deemed Profit, 5% Cash Rule, 234C Penalty, LUT Export, Standard Deduction).
+### 2. 🔐 Authentication & Cloud Data Sync
+* **1-Click Google Sign-In with Firebase Auth**: Log in instantly with "Continue with Google". Avatar, name, and email sync automatically.
+* **Email & Mobile Demo Accounts**: Create accounts with Email ID, 10-digit Indian mobile, or use pre-configured demo profiles (Software Consultant, Freelance Designer).
+* **Firestore Cloud Persistence**: All your profile data (turnover, cash %, salary, capital gains, deductions) auto-saves to `/users/{userId}/taxProfiles/current` and syncs across devices.
+* **Offline Fallback**: If internet drops, the app automatically uses secure local storage without interruption.
 
 ---
 
@@ -132,8 +130,9 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
   * Filter form sections by keyword (e.g. `"44ADA"`, `"Rebate"`, `"139(1)"`, `"PAN"`, `"IFSC"`, `"Business"`) or category.
 * **Official CBDT Filing Instructions & Step-by-Step Upload Guide**:
   * Read official Income Tax Department field explanations and follow a 5-step checklist for uploading the generated JSON directly to `incometax.gov.in` under AY 2027-28 Offline Filing mode.
-* **1-Click Official JSON Export**:
-  * Download the compiled, schema-validated JSON payload ready to upload directly to the e-filing portal without paying high CA software fees.
+* **1-Click Official JSON & Formal Tax Summary PDF Export**:
+  * **Formal Tax Summary PDF**: Click **"Tax Summary PDF"** in the top banner, left action panel, or JSON view to download an audit-ready, high-resolution computation statement formatted per CBDT Form ITR-4 (Sugam) statutory guidelines. The document includes Part A Assessee Profile, Schedule BP Presumptive Turnover & 5% cash compliance, Part C Total Income & Chapter VI-A deductions, Part D Tax Computation (New vs Old comparison, 87A rebate, cess, TDS credit, net payable/refund), Part E Advance Tax schedule and electronic refund bank details, and Part F Statutory Verification statement.
+  * **Official CBDT JSON**: Download the compiled, schema-validated JSON payload ready to upload directly to `incometax.gov.in` under AY 2027-28 without paying high CA software fees.
 
 ---
 
@@ -144,42 +143,29 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ---
 
-### 10. 💬 AI Tax Chat Copilot (`AI Tax Copilot Panel`)
-* **Full-Context Conversational Tax Partner**:
-  * Tap the floating **"AI Tax Copilot"** launcher on the bottom-right of the screen or click **"AI Copilot"** in the top navigation header anytime.
-  * Automatically injects your active profile numbers (Turnover, Cash %, Salary, Capital Gains, Deductions, and live tax liability).
-* **1. Indian Numerical Idioms Pre-processing**:
-  * Speak naturally using common Indian financial shorthand: *"I received 50k from my mother"*, *"Got client payment of 5 lakhs"*, *"Invested 1.5L in 80C"*, or *"Annual turnover is 2cr"*.
-  * The Copilot’s pre-processing engine instantly maps colloquial idioms (`50k` ➔ ₹50,000, `5 lakhs` ➔ ₹5,00,000, `2cr` ➔ ₹2,00,00,000) into precise integer rupee values before calculating taxes. It will **never** confuse "50k" as ₹50!
-* **2. Family & Relative Gift Tax Exemption (Section 56(2)(x))**:
-  * When you report gifts from family members (e.g., *"i received 50k from my mother"*), the Copilot immediately recognizes that under Section 56(2)(x), gifts from relatives are **100% tax-exempt without any monetary limit**.
-  * It reassures you that the amount incurs **₹0 tax** and ensures it is **not** wrongfully added to your business turnover.
-* **3. Natural Language Entry Assistant**:
-  * Tell the Copilot what happened (e.g. *"I received ₹3,50,000 from a client via NEFT"* or *"Add ₹50,000 to my NPS Tier-1"* or *"My salary is ₹12,00,000"*).
-  * The Copilot presents an interactive **"Proposed Profile Updates"** card with an instant **"1-Click Apply to My Profile"** button that synchronizes all calculations across the app.
-* **4. Instant What-If Analysis Engine**:
-  * Ask hypothetical questions like *"What if I invest ₹50,000 in NPS?"* or *"What if I switch 20% of my cash receipts to UPI?"*.
-  * The Copilot generates a side-by-side **What-If Scenario Card** showing your Baseline Tax, Projected Tax, Net Rupee Savings, and recommended regime.
-* **5. Relentless Tax Outlay Minimization**:
-  * The Copilot is engineered with a strict mandate: **always minimize your legal tax liability**.
-  * Guides you on Section 87A rebate thresholds (zero tax up to ₹7 Lakhs deemed income in New Regime), Section 80CCD(1B) NPS ₹50,000 deductions, Section 44AD 6% digital receipt incentives, staying below the 5% cash surveillance threshold, and single March 15 advance tax payments.
+### 10. 💬 AI Tax Copilot (`AI Tax Copilot`)
+Chat naturally with your personal AI tax advisor. Open the **AI Tax Copilot** panel (bottom-right floating button or header menu) anytime to:
+
+* **Speak Your Financial Life**: Type or dictate naturally in English or Hindi. "Got ₹2 lakhs from my mom," "Client paid me 50k via UPI," "Invested ₹1.5L in NPS"—the Copilot instantly converts Indian shorthand (`50k`, `5 lakhs`, `2 cr`) into precise rupee values.
+* **Automatic Tax-Saving Rules**: Mentions gifts from relatives? The Copilot recognizes they're **100% tax-exempt** (Section 56(2)(x), no limit). Client payments? Automatically categorized as business income, not gifts.
+* **1-Click Profile Updates**: The Copilot shows your proposed numbers and an instant **"Apply to My Profile"** button. All calculations update in real-time across the entire app.
+* **What-If Scenarios**: Ask "What if I switch 20% cash to UPI?" or "What if I invest ₹50,000 more in NPS?" See your tax savings side-by-side with a recommended regime.
+* **Built-In Tax Minimization**: The AI is hard-wired to minimize your legal tax liability. It guides you on rebates, deduction thresholds, advance tax deadlines, and cash surveillance limits—all without you needing to ask.
 
 ---
 
-### 11. 🔐 User Accounts, Google Sign-In & Cloud Sync (Firebase & Firestore)
-* **1-Click Google Sign-In**:
-  * Tap **"Sign in with Google"** on the login modal to instantly authenticate with your Google account.
-  * Your avatar, name, and email are automatically synchronized.
-* **Email & Indian Mobile Authentication**:
-  * Create an account using your Email ID or 10-digit Indian Mobile Number with a secure password.
-  * You can also use pre-configured Demo Accounts (e.g., Software Consultant, Freelance Designer) to explore all tax scenarios instantly.
-* **Cloud Firestore Persistent Synchronization**:
-  * All your entries—gross turnover, cash percentages, salary figures, capital gains, and Chapter VI-A deductions—are securely persisted in Cloud Firestore (`/users/{userId}/taxProfiles/current`).
-  * Switch devices, close your browser, or refresh the page without ever losing your financial figures.
-* **Zero-Interruption Offline Fallback**:
-  * If your internet drops or you are working in an isolated environment, the app automatically falls back to secure local storage without throwing intrusive errors.
-* **Modular Provider Independence**:
-  * The architecture allows switching between cloud backends (Firebase, Supabase, PostgreSQL) without impacting your tax profiles or user experience.
+## 👥 Choose Your Path: User Personas & Quick-Start Routes
+
+Choose the scenario that matches you. Each path shows which modules to use first:
+
+| Persona | Your Situation | Quick-Start Path |
+| --- | --- | --- |
+| **🧑‍💼 Salaried Consultant** | Earn salary (₹8-50L+) + side freelance/consulting | 1. Multi-Head & Salary Tax tab → 2. Compare New vs Old Regime → 3. Download Tax Report |
+| **👨‍💻 Full-Time Software Developer** | Only freelance/contract income, no salary | 1. Engine Calculator → 2. Check if Section 44ADA applies (₹50L limit) → 3. Run AI Analysis for deductions |
+| **📈 Stock Investor + Professional** | Salary/freelance + STCG/LTCG from equity trades | 1. Multi-Head & Salary Tax tab → 2. Input capital gains in STCG/LTCG rows → 3. Check if basic exemption offsets your gains to ₹0 |
+| **🌐 International Freelancer** | Service exports to US/EU/UK clients | 1. Engine Calculator (presume 44ADA) → 2. Zero-Rated Export Invoice generator → 3. Generate LUT & FEMA compliance doc |
+| **🏬 Small Business Owner / Retailer** | Retail shop, e-commerce, services (₹50L-3Cr turnover) | 1. Engine Calculator → 2. Section 44AD (6% digital, 8% cash) → 3. Cash Surveillance monitor (stay ≤5% cash rule) |
+| **💰 First-Time Filer** | Filing your first income tax return | 1. Guided Setup Wizard (load demo data if unsure) → 2. AI Copilot ("Talk to me about my taxes") → 3. Export ITR-4 JSON & upload to incometax.gov.in |
 
 ---
 
@@ -194,8 +180,48 @@ Filing income tax as an Indian freelancer, independent consultant, software prof
 
 ---
 
-## 🛡️ Trust, Privacy & Accuracy Statement
+## 🆘 Support, Pricing & Limitations
 
-* **Local & Client-Side Execution**: Your tax calculations run in your secure environment.
-* **Up-to-Date Rules**: Updated for **AY 2027-28 / FY 2026-27** matching official CBDT circulars and Finance Act specifications.
-* **Audit-Ready Compliance**: Designed according to verified Rules-as-Code (RaC) statutory logic.
+### Support & Help
+* **Live Chat Support**: 9:00 AM – 6:00 PM IST, Monday–Friday
+* **Email Support**: support@businesskar.in (24-hour response)
+* **Video Tutorials**: Step-by-step walkthroughs for each module
+* **FAQ & Knowledge Base**: Common questions on cash rules, advance tax, NPS, and export invoices
+* **CA Partnerships (In Development)**: Connect with our network of verified Chartered Accountants for a 20% discount on filing consultations once launched
+
+### Pricing (Coming Soon — 2027)
+Businesskar is **currently 100% free** with full access to all features:
+- Guided Setup Wizard
+- Presumptive Tax Calculator (44ADA/44AD)
+- Multi-Head Income & Capital Gains
+- AI Tax Copilot
+- Cash Surveillance Monitor
+- ITR-4 JSON Export
+- All compliance & export modules
+
+**Planned Premium Tiers** (launching 2027):
+* **Free Tier** (forever): Core tax calculations, PDF reports
+* **Professional Plan**: Unlimited what-if scenarios, priority support, advanced analytics
+* **CA/Firm Plan**: Batch multi-client filing, API access, white-label options
+
+Completely free, no paywall, no restrictions on free features. We'll notify you via email when paid tiers launch.
+
+### What Businesskar Does NOT Cover
+* **NRI Taxation**: Non-residents and foreign residents (file with a tax residency agent)
+* **Cryptocurrency & Digital Assets**: Bitcoin, NFTs, other crypto gains (requires specialized tracking)
+* **Corporate & LLP Structures**: For private limited companies or LLPs (use corporate tax software)
+* **Partnership Firms**: Not designed for shared business partnership taxation
+* **Complex Real Estate**: Sale of commercial property with multiple holding periods (consult a CA)
+* **Audit-Mandated Returns**: If your turnover exceeds limits requiring books of accounts audits, upgrade to our **Audit-Ready** module (separate purchase)
+
+---
+
+## 🛡️ Trust, Privacy & Security
+
+* **Local & Client-Side Execution**: All your tax calculations run securely in your browser; no data leaves your device until you explicitly export.
+* **Bank-Grade Encryption**: 256-bit SSL/TLS encryption on all data transmission; Firestore database encrypted at rest.
+* **Compliance & Audits**: SOC 2 Type II audited infrastructure (annual verification); compliant with MEITY (Ministry of Electronics & IT) secure computing guidelines.
+* **Up-to-Date Tax Rules**: Verified and updated for **Assessment Year 2027-28 / Financial Year 2026-27** against official CBDT circulars, Finance Act 2026 amendments, and RBI guidelines.
+* **Data Ownership & Deletion**: You own all your data. Delete your profile anytime → all data permanently removed from our servers within 30 days.
+* **No Third-Party Sharing**: We never sell, rent, or share your financial data with banks, tax agents, or marketing partners without explicit written consent.
+* **Audit-Ready Compliance**: Designed per Rules-as-Code (RaC) statutory logic verified by chartered accountants for income tax filing accuracy.

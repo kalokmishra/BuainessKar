@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, afterAll } from 'vitest';
+import fs from 'fs';
 import { calculateAdvanceTax } from '../src/engine/advanceTax.js';
 import {
   generateITR4Json,
@@ -7,6 +8,7 @@ import {
   validateITR4SchemaCompliance,
 } from '../src/engine/itr4Schema.js';
 import { calculatePresumptiveTax } from '../src/engine/presumptiveTax.js';
+import { generateITR4SummaryPdf } from '../src/utils/pdfExporter.js';
 
 describe('Module 6: Government ITR-4 Schema Mapper', () => {
   it('should validate PAN and IFSC regex formats correctly', () => {
@@ -94,6 +96,93 @@ describe('Module 6: Government ITR-4 Schema Mapper', () => {
     expect(itrData.IncomeDeductions.PresumptiveIncome44ADA).toBe(2500000);
     expect(itrData.TaxComputation.TotalTaxPayable).toBe(presumptiveResult.newRegime.totalTaxLiability);
     expect(itrData.AdvanceTaxAndTDS.TotalAdvanceTaxPaid).toBe(300000);
+  });
+
+  it('should generate formal ITR-4 Tax Summary PDF document without errors', () => {
+    const presumptive = calculatePresumptiveTax({
+      workflowRoute: 'SECTION_44ADA',
+      grossReceipts: 4800000,
+      cashReceipts: 100000,
+    });
+
+    const advanceTax = calculateAdvanceTax({
+      estimatedAnnualTaxLiability: presumptive.newRegime.totalTaxLiability,
+      paymentsMade: [],
+      isPresumptiveTaxpayer: true,
+    });
+
+    const result = generateITR4SummaryPdf({
+      pan: 'ABCDE1234F',
+      fullName: 'Rahul Sharma',
+      workflowRoute: 'SECTION_44ADA',
+      businessCode: '09028',
+      tradeName: 'Software Consultancy Services',
+      grossReceipts: 4800000,
+      cashReceipts: 100000,
+      tdsClaimed: 25000,
+      optedNewRegime: true,
+      presumptive,
+      advanceTax,
+      bankDetails: [
+        {
+          bankName: 'State Bank of India',
+          accountNumber: '998877665544',
+          ifsCode: 'SBIN0001234',
+          isPrimaryForRefund: true,
+        },
+      ],
+    });
+
+    expect(result.filename).toBe('ITR4_Sugam_Tax_Summary_ABCDE1234F_AY2027-28.pdf');
+    expect(result.doc).toBeDefined();
+    expect(result.doc.getNumberOfPages()).toBe(1);
+  });
+
+  it('should generate formal ITR-4 Tax Summary PDF for Section 44AD with tax refund scenario', () => {
+    const presumptive = calculatePresumptiveTax({
+      workflowRoute: 'SECTION_44AD',
+      grossReceipts: 2000000,
+      cashReceipts: 50000,
+    });
+
+    const advanceTax = calculateAdvanceTax({
+      estimatedAnnualTaxLiability: presumptive.newRegime.totalTaxLiability,
+      paymentsMade: [],
+      isPresumptiveTaxpayer: true,
+    });
+
+    // High TDS leads to refund
+    const result = generateITR4SummaryPdf({
+      pan: 'XYZAB9876C',
+      fullName: 'Priya Verma',
+      workflowRoute: 'SECTION_44AD',
+      businessCode: '09025',
+      tradeName: 'Verma Design Studio',
+      grossReceipts: 2000000,
+      cashReceipts: 50000,
+      tdsClaimed: 100000,
+      optedNewRegime: false,
+      presumptive,
+      advanceTax,
+    });
+
+    expect(result.filename).toBe('ITR4_Sugam_Tax_Summary_XYZAB9876C_AY2027-28.pdf');
+    expect(result.doc).toBeDefined();
+    expect(result.doc.getNumberOfPages()).toBe(1);
+  });
+
+  afterAll(() => {
+    const files = [
+      'ITR4_Sugam_Tax_Summary_ABCDE1234F_AY2027-28.pdf',
+      'ITR4_Sugam_Tax_Summary_XYZAB9876C_AY2027-28.pdf',
+    ];
+    files.forEach((f) => {
+      if (fs.existsSync(f)) {
+        try {
+          fs.unlinkSync(f);
+        } catch {}
+      }
+    });
   });
 });
 

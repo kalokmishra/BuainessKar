@@ -149,8 +149,12 @@ interface TaxDataContextType {
   loadDemoData: () => void;
   resetToZeros: () => void;
   isTourOpen: boolean;
-  openTour: () => void;
+  openTour: (step?: number) => void;
   closeTour: () => void;
+  tourInitialStep: number | null;
+  requestedTab: string | null;
+  navigateTab: (tab: string) => void;
+  clearRequestedTab: () => void;
   isBannerDismissed: boolean;
   dismissBanner: () => void;
   isZeroData: boolean;
@@ -180,6 +184,8 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
+  const [tourInitialStep, setTourInitialStep] = useState<number | null>(null);
+  const [requestedTab, setRequestedTab] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | null>(null);
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(() => {
@@ -251,8 +257,27 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTaxData(ZERO_TAX_DATA);
   };
 
-  const openTour = () => setIsTourOpen(true);
-  const closeTour = () => setIsTourOpen(false);
+  const openTour = (step?: number) => {
+    if (step !== undefined) {
+      setTourInitialStep(step);
+    } else {
+      setTourInitialStep(null);
+    }
+    setIsTourOpen(true);
+  };
+
+  const closeTour = () => {
+    setIsTourOpen(false);
+    setTourInitialStep(null);
+  };
+
+  const navigateTab = (tab: string) => {
+    setRequestedTab(tab);
+  };
+
+  const clearRequestedTab = () => {
+    setRequestedTab(null);
+  };
 
   const openChat = (initialPrompt?: string) => {
     if (initialPrompt) {
@@ -290,6 +315,10 @@ export const TaxDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isTourOpen,
         openTour,
         closeTour,
+        tourInitialStep,
+        requestedTab,
+        navigateTab,
+        clearRequestedTab,
         isBannerDismissed,
         dismissBanner,
         isZeroData,

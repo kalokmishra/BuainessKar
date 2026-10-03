@@ -1,6 +1,6 @@
 # 🔐 Modular Database & Authentication Guide (Firebase, Firestore & Provider Switching)
 
-This guide documents the modular database and authentication architecture implemented in **Businessकर**, how Firebase Authentication and Cloud Firestore operate, security and data integrity invariants, and step-by-step instructions for switching to another provider (such as Supabase, PostgreSQL, Appwrite, or custom REST APIs) in the future.
+This guide documents the modular database and authentication architecture implemented in **Businesskar**, how Firebase Authentication and Cloud Firestore operate, security and data integrity invariants, and step-by-step instructions for switching to another provider (such as Supabase, PostgreSQL, Appwrite, or custom REST APIs) in the future.
 
 ---
 
@@ -58,6 +58,10 @@ The application implements the **Dependency Inversion Principle (DIP)**. The use
 | `src/services/firebase/firestoreDatabaseService.ts` | Concrete `IDatabaseService` implementation using Cloud Firestore (`/users/{userId}` and `/users/{userId}/taxProfiles/current`). |
 | `src/services/local/localAuthService.ts` | Standalone local storage authentication provider (supports offline demo accounts and credential accounts without cloud dependencies). |
 | `src/services/local/localDatabaseService.ts` | Standalone local storage database provider (instant offline persistence using namespaced `localStorage` keys). |
+| `src/firebase.ts` | Centralized Firebase initialization module with environment variable resolution (`VITE_FIREBASE_*`), fallback mechanisms, and conditional analytics. |
+| `.env.example` | Template for environment variables (Vite & CRA prefixes) without secrets. |
+| `vercel.json` | Vercel production deployment routing and build configuration. |
+| `VERCEL_DEPLOYMENT_GUIDE.md` | Complete Vercel deployment walkthrough with secret safety controls. |
 | `firebase-blueprint.json` | Declarative entity catalog and schema blueprint defining `UserProfile` and `TaxProfile` document structures, types, and constraints. |
 | `security_spec.md` | Security specification detailing data invariants, access rules, and the "Dirty Dozen" penetration/malformed payload test scenarios. |
 | `firestore.rules` | Production-grade security rules enforcing default-deny, strict path-variable validation, owner authentication checks, and schema integrity. |
@@ -65,7 +69,7 @@ The application implements the **Dependency Inversion Principle (DIP)**. The use
 
 ---
 
-## 3. How Firebase & Firestore Work in Businessकर
+## 3. How Firebase & Firestore Work in Businesskar
 
 ### A. Authentication Flow (Google Sign-In & Credentials)
 1. **Google 1-Click Sign-In**:

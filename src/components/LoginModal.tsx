@@ -96,10 +96,10 @@ export const LoginModal: React.FC = () => {
           </div>
           <h2 className="text-2xl font-black text-slate-100 flex items-center justify-center gap-1">
             <span>Business</span>
-            <span className="text-emerald-400">कर</span>
+            <span className="text-emerald-400">kar</span>
           </h2>
           <p className="text-xs text-slate-400">
-            {mode === 'LOGIN' ? 'Sign in to access Indian Presumptive Tax Engine' : 'Create your Businessकर Tax Pro Account'}
+            {mode === 'LOGIN' ? 'Sign in to access Indian Presumptive Tax Engine' : 'Create your Businesskar Tax Pro Account'}
           </p>
         </div>
 

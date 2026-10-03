@@ -23,7 +23,7 @@ export const OnboardingPromptBanner: React.FC = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                <span>Welcome to Businessकर Tax Engine</span>
+                <span>Welcome to Businesskar Tax Engine</span>
               </h3>
               {taxData.isDemoDataLoaded && (
                 <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">

@@ -20,6 +20,10 @@ import {
 import { useTaxData } from '../context/TaxDataContext';
 import { useAuth } from '../context/AuthContext';
 import { AIChatMessage, WhatIfAnalysis } from '../engine/types';
+import {
+  generateDeterministicChatResponse,
+  computeBaselineTax,
+} from '../engine/deterministicCopilot';
 
 export const AIChatPanel: React.FC = () => {
   const { currentUser } = useAuth();
@@ -96,56 +100,84 @@ export const AIChatPanel: React.FC = () => {
         content: m.content,
       }));
 
-      const res = await fetch('/api/tax/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          history: historyPayload,
-          profile: {
-            user: {
-              name: currentUser?.name,
-              identifier: currentUser?.identifier,
-            },
-            taxData,
-          },
-        }),
-      });
+      // Abort controller with 4.5s timeout for fast UI responsiveness
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4500);
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status === 'success' && json.data) {
-          const assistantMessage: AIChatMessage = {
-            id: `ast_${Date.now()}`,
-            role: 'assistant',
-            content: json.data.reply,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            suggestedUpdates: json.data.suggestedUpdates,
-            whatIf: json.data.whatIf,
-            preprocessedEntities: json.data.preprocessedEntities,
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          return;
+      let assistantData: any = null;
+
+      try {
+        const res = await fetch('/api/tax/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message: textToSend,
+            history: historyPayload,
+            profile: {
+              user: {
+                name: currentUser?.name,
+                identifier: currentUser?.identifier,
+              },
+              taxData,
+            },
+          }),
+        });
+
+        clearTimeout(timer);
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status === 'success' && json.data) {
+            assistantData = json.data;
+          }
         }
+      } catch (fetchErr) {
+        clearTimeout(timer);
+        console.warn('Backend chat copilot unreachable or slow, switching to local Rules-as-Code engine:', fetchErr);
       }
 
-      // Fallback assistant response
-      const fallbackMsg: AIChatMessage = {
+      // If backend didn't respond or timed out, evaluate instantly using local deterministic Rules-as-Code engine
+      if (!assistantData) {
+        const baseline = computeBaselineTax(taxData);
+        assistantData = generateDeterministicChatResponse(
+          textToSend,
+          taxData,
+          baseline,
+          currentUser?.name
+        );
+      }
+
+      const assistantMessage: AIChatMessage = {
         id: `ast_${Date.now()}`,
         role: 'assistant',
-        content: `I've analyzed your request regarding "${textToSend}". Under Section 44AD/44ADA, preserving your presumptive relief and opting for the New Tax Regime (Section 115BAC) keeps your effective tax outlay minimized.`,
+        content: assistantData.reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        suggestedUpdates: assistantData.suggestedUpdates,
+        whatIf: assistantData.whatIf,
+        preprocessedEntities: assistantData.preprocessedEntities,
       };
-      setMessages((prev) => [...prev, fallbackMsg]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      console.error('Chat copilot communication error:', err);
-      const errorMsg: AIChatMessage = {
+      console.error('Chat copilot processing error:', err);
+      // Even in the rarest client exception, generate deterministic fallback
+      const baseline = computeBaselineTax(taxData);
+      const fallback = generateDeterministicChatResponse(
+        textToSend,
+        taxData,
+        baseline,
+        currentUser?.name
+      );
+      const errorFallbackMsg: AIChatMessage = {
         id: `ast_${Date.now()}`,
         role: 'assistant',
-        content: `Sorry, I encountered a temporary connection issue. Please verify your query or test one of the quick optimization buttons below.`,
+        content: fallback.reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        suggestedUpdates: fallback.suggestedUpdates,
+        whatIf: fallback.whatIf,
+        preprocessedEntities: fallback.preprocessedEntities,
       };
-      setMessages((prev) => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorFallbackMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -347,7 +379,7 @@ export const AIChatPanel: React.FC = () => {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xs font-bold text-slate-100 truncate">
-                Businessकर AI Tax Copilot
+                Businesskar AI Tax Copilot
               </h3>
               <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-mono font-bold">
                 Gemini 3.8 Flash

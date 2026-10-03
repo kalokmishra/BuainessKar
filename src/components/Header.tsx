@@ -17,6 +17,7 @@ import {
   Key,
   ChevronDown,
   BookOpen,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTaxData } from '../context/TaxDataContext';
@@ -81,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <h1 className="font-bold text-lg text-slate-100 tracking-tight flex items-center gap-1 leading-none">
                   <span>Business</span>
-                  <span className="text-emerald-400">कर</span>
+                  <span className="text-emerald-400">kar</span>
                 </h1>
                 {/* FY / AY 2-line badge */}
                 <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded flex flex-col leading-tight text-center tracking-tight">
@@ -195,6 +196,17 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Actions List */}
                     <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          openTour(0);
+                        }}
+                        className="w-full text-left px-3.5 py-2 text-xs text-slate-200 hover:text-emerald-300 hover:bg-slate-800/90 flex items-center gap-2.5 transition-colors cursor-pointer font-medium"
+                      >
+                        <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Choose Your Persona Again</span>
+                      </button>
+
                       <button
                         onClick={() => {
                           setIsProfileMenuOpen(false);

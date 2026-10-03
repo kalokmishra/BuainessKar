@@ -1,6 +1,6 @@
 # Firestore Security Specification & Invariants
 
-This specification defines the Access Control & Data Invariants for Businessकर Firestore Database.
+This specification defines the Access Control & Data Invariants for Businesskar Firestore Database.
 
 ## 1. Data Invariants
 

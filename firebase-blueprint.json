@@ -188,6 +188,22 @@
           "type": "boolean",
           "description": "Whether user finished wizard"
         },
+        "persona": {
+          "type": "string",
+          "description": "Selected taxpayer archetype / persona ID",
+          "maxLength": 50
+        },
+        "preferredTab": {
+          "type": "string",
+          "description": "Target tab associated with the selected persona",
+          "maxLength": 50
+        },
+        "taxRegime": {
+          "type": "string",
+          "description": "Selected tax regime (new or old)",
+          "enum": ["new", "old"],
+          "maxLength": 10
+        },
         "updatedAt": {
           "type": "string",
           "description": "ISO timestamp of last update"

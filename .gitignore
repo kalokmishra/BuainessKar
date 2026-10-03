@@ -4,5 +4,24 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env*
 !.env.example
+
+# Firebase config files (NEVER commit secrets)
+firebase-config.json
+*-firebase-config.json
+firebaseConfig.js
+
+# Secrets & Credentials
+secrets/
+.secrets
+credentials/
+.credentials
+.secrets.baseline

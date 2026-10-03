@@ -1,4 +1,4 @@
-# Day 1 Core Engine Architecture Documentation (Businessकर Tax Utility)
+# Day 1 Core Engine Architecture Documentation (Businesskar Tax Utility)
 
 ## 1. Executive Summary & Rules-as-Code (RaC) Paradigm
 This application implements the core computational and compliance engine for a mobile-first tax utility tailored for Indian freelancers, consultants, and micro-businesses operating under **Section 44AD** and **Section 44ADA** of the Indian Income Tax Act (as amended and applicable for **Financial Year 2026-27 / Assessment Year 2027-28**).
@@ -154,9 +154,9 @@ To avoid brittle hardcoding of statutory thresholds and slab rates, the architec
   - **Security Rules (`firestore.rules`) & Invariants (`security_spec.md`):** Deployed production rules enforcing default-deny, strict user-ownership validation (`request.auth.uid == userId`), path-variable sanitization, and defense against the "Dirty Dozen" malformed payload attacks.
 
 ### Utility 1: `pdfExporter.ts`
-- **Function:** `generateTaxCalculationPdf(data: TaxPdfExportData): void`
-- **Responsibilities:**
-  - Generates downloadable, formatted PDF tax reports containing Assessee Profile, Section 44AD/44ADA Eligibility Evaluation, Old vs New Regime Tax Line-Item Breakdown, Net Savings Banner, and Section 211 Advance Tax Schedule.
+- **Functions:**
+  - `generateTaxCalculationPdf(data: TaxPdfExportData): void`: Generates formatted PDF presumptive tax reports containing Assessee Profile, Section 44AD/44ADA Eligibility Evaluation, Old vs New Regime Tax Line-Item Breakdown, Net Savings Banner, and Section 211 Advance Tax Schedule.
+  - `generateITR4SummaryPdf(data: ITR4PdfExportData): { doc: jsPDF, filename: string }`: Generates formal, audit-ready ITR-4 (Sugam) Tax Computation & Summary Statement PDF documents for AY 2027-28 conforming to CBDT statutory standards with Assessee Profile, Schedule BP Presumptive Turnover & 5% cash checks, Chapter VI-A deductions, New vs Old Regime tax comparisons, TDS credits, net tax payable/refund calculation, Section 211 advance tax installments, electronic refund bank details, and Part F verification statement.
 
 ---
 
@@ -169,14 +169,14 @@ To execute the automated unit test suites covering edge cases across all core en
 npm test
 ```
 
-Test coverage includes (46 tests across 10 test suites):
+Test coverage includes (48 tests across 10 test suites):
 1. Individual IT consultant 44ADA qualification and extended limit application.
 2. Disqualification of LLPs and Commission businesses.
 3. Cash surveillance threshold triggers (`NORMAL`, `TIER_1_WARNING`, `TIER_2_VIOLATION`).
 4. Section 87A rebate calculations under New Regime.
 5. Section 211 single March 15 advance tax installment privilege.
 6. Cross-border LUT export invoice statutory disclaimer generation.
-7. Official ITR-4 Sugam JSON formatting and schema validation.
+7. Official ITR-4 Sugam JSON formatting, schema validation, and formal PDF summary document generation.
 8. Gemini AI Advisor response formatting & rule-based offline fallback handling.
 9. Multi-head aggregate tax computation across Salary, Presumptive Business/Profession, STCG Sec 111A, LTCG Sec 112A/112, and basic exemption set-off rules.
 10. AI Tax Chat Copilot What-If simulation, entry addition, and tax minimization planning.

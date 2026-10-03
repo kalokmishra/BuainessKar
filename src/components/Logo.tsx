@@ -11,7 +11,7 @@ export const LogoIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-
   return (
     <img 
       src="/logo.svg" 
-      alt="Businessकर Logo" 
+      alt="Businesskar Logo" 
       className={`object-contain ${className}`}
     />
   );
@@ -28,7 +28,7 @@ export const Logo: React.FC<LogoProps> = ({
       <div className="relative flex items-center justify-center shrink-0">
         <img 
           src="/logo.svg" 
-          alt="Businessकर Logo" 
+          alt="Businesskar Logo" 
           className={`object-contain filter drop-shadow-sm ${className}`}
         />
       </div>
@@ -38,7 +38,7 @@ export const Logo: React.FC<LogoProps> = ({
             Business
           </span>
           <span className="text-emerald-400 ml-0.5 font-sans font-black">
-            कर
+            kar
           </span>
         </div>
       )}

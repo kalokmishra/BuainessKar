@@ -1,6 +1,6 @@
-# Businessकर - Indian Tax Utility Engine & Mobile-First App (Section 44AD & Section 44ADA)
+# Businesskar - Indian Tax Utility Engine & Mobile-First App (Section 44AD & Section 44ADA)
 
-> **Businessकर: Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
+> **Businesskar: Rules-as-Code (RaC) Tax Utility Engine for Indian Freelancers, Consultants, and Micro-Businesses (FY 2026-27 / AY 2027-28)**
 
 📖 **[Read the End-User & Prospective User Feature Guide (USER_GUIDE.md)](./USER_GUIDE.md)** for a complete overview of features, value drivers, and compliance benefits.
 
@@ -47,8 +47,9 @@
     - Auto-maps Service Accounting Codes (e.g., `998314` for IT Consultancy).
     - Auto-attaches mandatory statutory LUT disclaimer text for zero-rated exports.
 
-11. **Government ITR-4 (Sugam) JSON Mapper & Pre-Filing Validator (`/src/engine/itr4Schema.ts`):**
+11. **Government ITR-4 (Sugam) JSON Mapper & Formal Tax Summary PDF Exporter (`/src/engine/itr4Schema.ts`, `/src/utils/pdfExporter.ts` & `ITR4MapperTab.tsx`):**
     - Exports financial calculation states directly into official Indian Income Tax Department ITR-4 field identifiers.
+    - **Formal Tax Summary PDF Document Export (`generateITR4SummaryPdf`):** Users can download a formal, audit-ready computation statement formatted per CBDT Form ITR-4 (Sugam) standards for AY 2027-28, complete with Assessee Profile, Schedule BP Presumptive Turnover & 5% Cash compliance check, Chapter VI-A Deductions, New vs Old Regime Tax breakdown, TDS Claimed & Net Refund/Payable calculation, Section 211 Advance Tax schedule, Bank Refund Details, and Part F Statutory Verification statement.
     - Features automated Schema Compliance Validation (`validateITR4SchemaCompliance`) checking PAN format regex, RBI IFSC bank branch validity, Nature of Business CBDT codes (e.g. 09028), primary refund account configuration, and Section 44ADA 50% profit floor checks.
     - Provides an interactive section explorer, search and filter bar, statutory guidelines, and 1-click JSON download for e-filing.
 
@@ -97,7 +98,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npm test
 ```
-Runs 46 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
+Runs 48 automated unit tests across 10 test suites using Vitest covering all core engine edge cases.
 
 ### 4. Build & Run Production Server
 ```bash
@@ -116,6 +117,7 @@ npm start
 ├── INTERN_OPERATIONS_GUIDE.md     # Intern troubleshooting & operational guide
 ├── MULTI_HEAD_TAX_GUIDE.md        # Multi-Head Salary & Capital Gains guide
 ├── USER_GUIDE.md                  # Comprehensive end-user feature guide
+├── ITR4_FILING_AND_EXPORT_GUIDE.md # ITR-4 (Sugam) Filing & Formal PDF Export Guide
 ├── MODULAR_FIREBASE_GUIDE.md      # Modular Database, Auth & Provider Switching Guide
 ├── AI_CHAT_COPILOT_GUIDE.md       # AI Copilot architecture, billing & idiom guide
 ├── security_spec.md               # Firestore access invariants & security test spec

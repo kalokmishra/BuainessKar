@@ -1,6 +1,6 @@
-# 🤖 Businessकर AI Tax Chat Copilot Architecture & Numerical Pre-processing Guide
+# 🤖 Businesskar AI Tax Chat Copilot Architecture & Numerical Pre-processing Guide
 
-This document explains the technical architecture, model details, billing/cost structure, numerical idiom pre-processing pipeline, and statutory intelligence governing the **AI Tax Chat Copilot** in Businessकर.
+This document explains the technical architecture, model details, billing/cost structure, numerical idiom pre-processing pipeline, and statutory intelligence governing the **AI Tax Chat Copilot** in Businesskar.
 
 ---
 

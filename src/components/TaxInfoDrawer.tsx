@@ -187,7 +187,7 @@ export const TaxInfoDrawer: React.FC<TaxInfoDrawerProps> = ({ isOpen, onClose })
                   </span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Simple explanations of technical tax jargon used across Businessकर
+                  Simple explanations of technical tax jargon used across Businesskar
                 </p>
               </div>
             </div>

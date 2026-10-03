@@ -17,6 +17,10 @@ import { calculateComprehensiveTax } from './src/engine/comprehensiveTax.js';
 import { getTaxSchema, setTaxSchema } from './src/engine/schemaLoader.js';
 import { generateAITaxTips } from './src/engine/aiAdvisor.js';
 import { processAIChatCopilot } from './src/engine/aiChatCopilot.js';
+import {
+  generateDeterministicChatResponse,
+  computeBaselineTax,
+} from './src/engine/deterministicCopilot.js';
 
 async function startServer() {
   const app = express();
@@ -326,8 +330,8 @@ async function startServer() {
 
   // 9. AI Tax Chat Copilot API (Assists entries, What-If Analysis, Tax Minimization)
   app.post('/api/tax/chat', async (req, res) => {
+    const { message, history, profile } = req.body || {};
     try {
-      const { message, history, profile } = req.body || {};
       if (!message || typeof message !== 'string') {
         return res.status(400).json({ status: 'error', message: 'Message is required' });
       }
@@ -343,7 +347,47 @@ async function startServer() {
         data: copilotResponse,
       });
     } catch (err: any) {
-      console.error('API /api/tax/chat error:', err);
+      console.error('API /api/tax/chat error, utilizing deterministic fallback:', err);
+      const safeTaxData = profile?.taxData || {};
+      const baseline = computeBaselineTax(safeTaxData);
+      const fallbackResponse = generateDeterministicChatResponse(
+        message || 'General Query',
+        safeTaxData,
+        baseline,
+        profile?.user?.name
+      );
+      res.json({
+        status: 'success',
+        data: fallbackResponse,
+      });
+    }
+  });
+
+  // 10. CA Review Requests Endpoint (Soft Lead-Gen)
+  app.post('/api/ca-review-requests', async (req, res) => {
+    try {
+      const { email, name, reviewType, profileSummary, notes } = req.body || {};
+      if (!email || !name) {
+        return res.status(400).json({ status: 'error', message: 'Name and email are required' });
+      }
+
+      console.log(`[CA Review Request] Received review inquiry from ${name} <${email}> for ${reviewType || 'general'}`);
+      
+      res.json({
+        status: 'success',
+        message: 'Review request registered successfully. Our tax team will follow up within 24 hours.',
+        data: {
+          requestId: `CAR-${Date.now()}`,
+          name,
+          email,
+          reviewType: reviewType || 'general',
+          profileSummary: profileSummary || {},
+          notes: notes || '',
+          createdAt: new Date().toISOString(),
+        },
+      });
+    } catch (err: any) {
+      console.error('API /api/ca-review-requests error:', err);
       res.status(500).json({ status: 'error', message: err.message || 'Internal error' });
     }
   });

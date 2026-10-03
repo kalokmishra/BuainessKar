@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { EligibilityResult, PresumptiveTaxResult, EntityType } from '../engine/types';
+import { EligibilityResult, PresumptiveTaxResult, AdvanceTaxResult, EntityType } from '../engine/types';
 
 interface TaxPdfExportData {
   entityType: EntityType;
@@ -34,7 +34,7 @@ export const generateTaxCalculationPdf = (data: TaxPdfExportData) => {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text('Businessकर - PRESUMPTIVE TAX EVALUATION REPORT', 14, 14);
+  doc.text('Businesskar - PRESUMPTIVE TAX EVALUATION REPORT', 14, 14);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -309,16 +309,390 @@ export const generateTaxCalculationPdf = (data: TaxPdfExportData) => {
     doc.text(formatINR(q4 - q3), 148, instY + 24);
   }
 
-  // Statutory Disclaimer Footer
+  // Expert CA Review Callout Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(14, 267, 182, 14, 2, 2, 'FD');
   doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Need Confidence Before Filing? Email this PDF to support@businesskar.in for a free initial review.', 18, 272.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('A tax expert will review your numbers and compliance (no charge for first review). 20% discount on future CA consultations.', 18, 277);
+
+  // Statutory Disclaimer Footer
+  doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
   doc.text(
     'Disclaimer: This evaluation report is generated automatically based on Section 44AD/44ADA rules under the Indian Income Tax Act (as amended for FY 2026-27). Please consult a qualified Chartered Accountant for final filing.',
     14,
-    285
+    286
   );
 
   // Save the generated PDF
   const filename = `Presumptive_Tax_Report_${data.entityType}_${Date.now()}.pdf`;
   doc.save(filename);
 };
+
+export interface ITR4PdfExportData {
+  pan: string;
+  fullName: string;
+  workflowRoute: 'SECTION_44ADA' | 'SECTION_44AD' | 'STANDARD_AUDIT_REQUIRED';
+  businessCode: string;
+  tradeName: string;
+  grossReceipts: number;
+  cashReceipts: number;
+  tdsClaimed: number;
+  optedNewRegime: boolean;
+  presumptive: PresumptiveTaxResult;
+  advanceTax: AdvanceTaxResult;
+  bankDetails?: {
+    bankName: string;
+    accountNumber: string;
+    ifsCode: string;
+    isPrimaryForRefund: boolean;
+  }[];
+}
+
+/**
+ * Generates an official, formal ITR-4 (Sugam) Tax Computation & Summary Statement PDF.
+ * Conforms to AY 2027-28 (FY 2026-27) CBDT filing standards for presumptive taxpayers.
+ */
+export const generateITR4SummaryPdf = (data: ITR4PdfExportData) => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const formatINR = (val: number) => `INR ${(val || 0).toLocaleString('en-IN')}`;
+  const regimeData = data.optedNewRegime ? data.presumptive.newRegime : data.presumptive.oldRegime;
+  const netPayableOrRefund = regimeData.totalTaxLiability - data.tdsClaimed;
+  const isRefund = netPayableOrRefund < 0;
+
+  // Title Header Block (Slate 900 banner)
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, 210, 32, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14.5);
+  doc.text('FORM ITR-4 (SUGAM) - COMPUTATION OF TOTAL INCOME & TAX', 14, 13);
+
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(52, 211, 153); // Emerald 400
+  doc.text('Assessment Year 2027-28 | Financial Year 2026-27 (Section 44AD / 44ADA)', 14, 20);
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(148, 163, 184); // Slate 400
+  doc.text(
+    `Formal Summary Document | Generated: ${new Date().toLocaleString('en-IN')} | Ref: ITR4-SUGAM-${data.pan.toUpperCase()}`,
+    14,
+    26.5
+  );
+
+  let yPos = 36;
+
+  // SECTION 1: Assessee Identification & Profile (Part A)
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(14, yPos, 182, 28, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PART A: Taxpayer Profile & General Filing Details', 18, yPos + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+
+  doc.text('Legal Name:', 18, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.fullName || 'Rahul Sharma', 45, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('PAN:', 115, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(5, 150, 105);
+  doc.text(data.pan.toUpperCase(), 130, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Business / Profession:', 18, yPos + 20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  const tradeDesc = `${data.businessCode} - ${data.tradeName || 'Professional Services'}`;
+  doc.text(tradeDesc.length > 38 ? `${tradeDesc.substring(0, 36)}...` : tradeDesc, 55, yPos + 20);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Tax Regime:', 115, yPos + 20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(data.optedNewRegime ? 5 : 180, data.optedNewRegime ? 150 : 83, data.optedNewRegime ? 105 : 9);
+  doc.text(data.optedNewRegime ? 'New Regime (Sec 115BAC)' : 'Old Tax Regime', 135, yPos + 20);
+
+  yPos += 32;
+
+  // SECTION 2: Presumptive Business / Profession Statement (Schedule BP)
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(14, yPos, 182, 33, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PART B: Schedule BP - Presumptive Receipts & Deemed Profit', 18, yPos + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+
+  const cashPct = data.grossReceipts > 0 ? ((data.cashReceipts / data.grossReceipts) * 100).toFixed(1) : '0.0';
+  const isCompliantCash = Number(cashPct) <= 5.0;
+
+  doc.text('Gross Receipts / Turnover:', 18, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatINR(data.grossReceipts), 62, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Cash Receipts (%):', 115, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(isCompliantCash ? 5 : 225, isCompliantCash ? 150 : 29, isCompliantCash ? 105 : 72);
+  doc.text(`${formatINR(data.cashReceipts)} (${cashPct}%)`, 146, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Applicable Section:', 18, yPos + 20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    data.workflowRoute === 'SECTION_44ADA'
+      ? 'Section 44ADA (Professionals)'
+      : 'Section 44AD (Small Business)',
+    55,
+    yPos + 20
+  );
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Deemed Profit Rate:', 115, yPos + 20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.presumptive.presumptiveRateAppliedText, 146, yPos + 20);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Total Presumptive Income:', 18, yPos + 27);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(5, 150, 105);
+  doc.text(formatINR(data.presumptive.deemedProfit), 62, yPos + 27);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('5% Cash Threshold Status:', 115, yPos + 27);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(isCompliantCash ? 5 : 225, isCompliantCash ? 150 : 29, isCompliantCash ? 105 : 72);
+  doc.text(isCompliantCash ? 'Compliant (<= 5%)' : 'Exceeds 5% Limit', 156, yPos + 27);
+
+  yPos += 37;
+
+  // SECTION 3: Computation of Total Income & Deductions (Part C)
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(14, yPos, 182, 28, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PART C: Computation of Total Income & Deductions', 18, yPos + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+
+  doc.text('1. Presumptive Business/Professional Income:', 18, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatINR(regimeData.grossDeemedProfit), 86, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('2. Gross Total Income (GTI):', 115, yPos + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatINR(regimeData.grossTotalIncome), 158, yPos + 13);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('3. Chapter VI-A Deductions (80C, 80D, 80CCD):', 18, yPos + 21);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  const dedText = data.optedNewRegime ? 'INR 0 (Not allowed u/s 115BAC)' : `-${formatINR(regimeData.deductionsApplied)}`;
+  doc.text(dedText, 86, yPos + 21);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('4. Total Taxable Income:', 115, yPos + 21);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(5, 150, 105);
+  doc.text(formatINR(regimeData.totalTaxableIncome), 158, yPos + 21);
+
+  yPos += 32;
+
+  // SECTION 4: Formal Tax Computation & Net Balance (Part D)
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(14, yPos, 182, 66, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PART D: Tax Computation, Rebates & Net Payable / Refund Due', 18, yPos + 6);
+
+  // Mini Table Header
+  const tblY = yPos + 10;
+  doc.setFillColor(226, 232, 240);
+  doc.rect(18, tblY, 174, 6, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Computation Line Item', 22, tblY + 4.2);
+  doc.text('New Regime (Sec 115BAC)', 95, tblY + 4.2);
+  doc.text('Old Tax Regime (Optional)', 146, tblY + 4.2);
+
+  const p = data.presumptive;
+  const lineItems = [
+    { label: 'Base Income Tax on Slab', new: formatINR(p.newRegime.baseTaxBeforeRebate), old: formatINR(p.oldRegime.baseTaxBeforeRebate) },
+    { label: 'Less: Rebate under Section 87A', new: `-${formatINR(p.newRegime.rebate87A)}`, old: `-${formatINR(p.oldRegime.rebate87A)}` },
+    { label: 'Tax Payable After Rebate', new: formatINR(p.newRegime.netTaxAfterRebate), old: formatINR(p.oldRegime.netTaxAfterRebate) },
+    { label: 'Add: Health & Education Cess (4%)', new: formatINR(p.newRegime.cess), old: formatINR(p.oldRegime.cess) },
+    { label: 'Total Gross Tax Liability', new: formatINR(p.newRegime.totalTaxLiability), old: formatINR(p.oldRegime.totalTaxLiability), bold: true },
+    { label: 'Less: Tax Deducted at Source (TDS Claimed)', new: `-${formatINR(data.tdsClaimed)}`, old: `-${formatINR(data.tdsClaimed)}` },
+  ];
+
+  let rowY = tblY + 10;
+  doc.setFontSize(7.5);
+  lineItems.forEach((item) => {
+    doc.setFont('helvetica', item.bold ? 'bold' : 'normal');
+    doc.setTextColor(item.bold ? 15 : 71, item.bold ? 23 : 85, item.bold ? 42 : 105);
+    doc.text(item.label, 22, rowY);
+    doc.text(item.new, 95, rowY);
+    doc.text(item.old, 146, rowY);
+    rowY += 5;
+  });
+
+  // Highlight Box for Chosen Regime & Balance Payable/Refund
+  doc.setFillColor(isRefund ? 239 : 236, isRefund ? 246 : 253, isRefund ? 255 : 245);
+  doc.setDrawColor(isRefund ? 191 : 167, isRefund ? 219 : 243, isRefund ? 254 : 208);
+  doc.roundedRect(18, yPos + 46, 174, 15, 1.5, 1.5, 'FD');
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(isRefund ? 29 : 4, isRefund ? 78 : 120, isRefund ? 216 : 87);
+  doc.text(
+    `ELECTED FILING REGIME: ${data.optedNewRegime ? 'NEW TAX REGIME (SEC 115BAC)' : 'OLD TAX REGIME'}`,
+    22,
+    yPos + 52
+  );
+
+  const statusLabel = isRefund ? 'NET REFUND DUE TO TAXPAYER' : 'NET TAX PAYABLE';
+  const statusColor = isRefund ? [37, 99, 235] : [180, 83, 9];
+  doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+  doc.text(
+    `${statusLabel}: ${formatINR(Math.abs(netPayableOrRefund))}  (TDS Claimed: ${formatINR(data.tdsClaimed)})`,
+    22,
+    yPos + 58
+  );
+
+  yPos += 70;
+
+  // SECTION 5: Advance Tax Schedule & Refund Bank Details (Part E)
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(14, yPos, 182, 28, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('PART E: Advance Tax Compliance (Sec 211) & Bank Refund Details', 18, yPos + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+
+  const advNote =
+    regimeData.totalTaxLiability < 10000
+      ? 'Tax liability < INR 10,000: Advance Tax is NOT mandatory under Section 208.'
+      : data.workflowRoute === 'SECTION_44AD'
+      ? 'Section 44AD Privilege: 100% advance tax payable in a single installment on or before 15th March.'
+      : 'Section 44ADA Schedule: Standard quarterly installments (15% Jun 15, 45% Sep 15, 75% Dec 15, 100% Mar 15).';
+  doc.text(advNote, 18, yPos + 12);
+
+  const primaryBank = data.bankDetails && data.bankDetails.length > 0 ? data.bankDetails[0] : null;
+  const bankString = primaryBank
+    ? `Refund Bank: ${primaryBank.bankName} | A/C: ${primaryBank.accountNumber} | IFSC: ${primaryBank.ifsCode} (Electronic Direct Credit)`
+    : 'Refund Bank: State Bank of India | Primary Account Verified for ECS/NEFT Refund';
+  doc.text(bankString, 18, yPos + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Interest u/s 234C: INR ${data.advanceTax?.totalInterest234C || 0}  |  Interest u/s 234B: INR 0`, 18, yPos + 24);
+
+  yPos += 32;
+
+  // SECTION 6: Statutory Verification & Declaration (Part F)
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(14, yPos, 182, 22, 2, 2, 'FD');
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.text('PART F: Statutory Verification (Rule 12 / Form ITR-4 Sugam)', 18, yPos + 5.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(
+    `I, ${data.fullName || 'Rahul Sharma'}, solemnly declare that to the best of my knowledge and belief, the details provided`,
+    18,
+    yPos + 10.5
+  );
+  doc.text(
+    `in this return computation are correct and complete, in accordance with the Indian Income Tax Act, 1961.`,
+    18,
+    yPos + 14.5
+  );
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, 18, yPos + 19);
+  doc.text(`Verified by: ${data.fullName || 'Rahul Sharma'} (PAN: ${data.pan.toUpperCase()})`, 95, yPos + 19);
+
+  // Footer Disclaimer & Free CA Review
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 65, 85);
+  doc.text(
+    'Need Confidence Before Filing? Email this PDF to support@businesskar.in (Free First Review | 20% Future CA Network Discount)',
+    14,
+    288
+  );
+
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Statutory Notice: This summary document is compiled by Businesskar Rules-as-Code Engine for electronic filing under Section 44AD/44ADA.',
+    14,
+    292.5
+  );
+
+  // Save the generated PDF
+  const filename = `ITR4_Sugam_Tax_Summary_${data.pan.toUpperCase()}_AY2027-28.pdf`;
+  doc.save(filename);
+  return { doc, filename };
+};
+

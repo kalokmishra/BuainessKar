@@ -137,7 +137,7 @@ export function generateITR4Json(input: ITR4MappingInput): ITR4SchemaOutput {
     ITR: {
       ITR4: {
         CreationInfo: {
-          Source: 'Businessकर Core RaC Engine',
+          Source: 'Businesskar Core RaC Engine',
           Version: schema.meta.version,
           Timestamp: new Date().toISOString(),
         },

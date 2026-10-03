@@ -17,10 +17,14 @@ import {
   CreditCard,
   ExternalLink,
   CheckCircle2,
+  FileDown,
+  Mail,
 } from 'lucide-react';
 import { generateITR4Json, validateITR4SchemaCompliance } from '../engine/itr4Schema';
 import { PresumptiveTaxResult, AdvanceTaxResult } from '../engine/types';
 import { FieldTooltip } from './FieldTooltip';
+import { generateITR4SummaryPdf } from '../utils/pdfExporter';
+import { CAReviewModal } from './CAReviewModal';
 
 interface ITR4MapperTabProps {
   presumptiveData?: PresumptiveTaxResult;
@@ -66,6 +70,7 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
   const [bankName, setBankName] = useState<string>('State Bank of India');
   const [optedNewRegime, setOptedNewRegime] = useState<boolean>(calculatorInput?.optedNewRegime !== false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [isCAReviewModalOpen, setIsCAReviewModalOpen] = useState<boolean>(false);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -178,6 +183,30 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
     a.download = `ITR4_AY2027-28_${pan.toUpperCase()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = () => {
+    generateITR4SummaryPdf({
+      pan,
+      fullName,
+      workflowRoute: calculatorInput?.workflowRoute || 'SECTION_44ADA',
+      businessCode,
+      tradeName,
+      grossReceipts,
+      cashReceipts,
+      tdsClaimed,
+      optedNewRegime,
+      presumptive: defaultPresumptive,
+      advanceTax: defaultAdvanceTax,
+      bankDetails: [
+        {
+          bankName,
+          accountNumber,
+          ifsCode,
+          isPrimaryForRefund: true,
+        },
+      ],
+    });
   };
 
   // Structured Section Data for Search & Interactive Guidance
@@ -361,22 +390,51 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
     <div className="space-y-6 text-white">
       {/* Top Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-400 shrink-0">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h2 className="text-base font-bold text-slate-100">
-                Government ITR-4 (Sugam) Section Explorer & JSON Generator
-              </h2>
-              <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
-                AY 2027-28 (FY 2026-27)
-              </span>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1">
+            <div className="bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-400 shrink-0">
+              <FileText className="w-5 h-5" />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Search ITR-4 form sections, review statutory instructions, and export financial calculations directly into the Income Tax Department's official e-filing JSON structure.
-            </p>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base font-bold text-slate-100">
+                  Government ITR-4 (Sugam) Section Explorer & Document Exporter
+                </h2>
+                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                  AY 2027-28 (FY 2026-27)
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Search ITR-4 form sections, verify statutory rules, and export your calculated tax summary as a formal computation PDF or official e-filing JSON.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 flex-wrap">
+            <button
+              onClick={() => setIsCAReviewModalOpen(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white font-semibold px-3.5 py-2.5 rounded-xl border border-indigo-500/30 transition-all active:scale-[0.98] cursor-pointer"
+              title="Request a free second opinion from verified Chartered Accountants"
+            >
+              <Mail className="w-4 h-4 text-indigo-400" />
+              <span>Free CA Review</span>
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              title="Download formal ITR-4 Sugam Tax Computation & Summary Statement PDF"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Tax Summary PDF</span>
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3.5 py-2.5 rounded-xl border border-slate-700 transition-all active:scale-[0.98] cursor-pointer"
+              title="Download CBDT schema-compliant JSON file"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>ITR-4 JSON</span>
+            </button>
           </div>
         </div>
       </div>
@@ -716,6 +774,55 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
               <li>Upload the downloaded JSON file and submit after e-Verification via Aadhaar OTP.</li>
             </ol>
           </div>
+
+          {/* Formal PDF Summary Export Card */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 space-y-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20 shrink-0">
+                <FileDown className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-100">Formal Tax Summary PDF</h4>
+                <p className="text-[10px] text-emerald-400 font-medium">AY 2027-28 Statutory Statement</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Download your complete tax calculation, deemed profit, Chapter VI-A deductions, rebate, advance tax schedule, and bank refund details as a formal document.
+            </p>
+            <button
+              onClick={handleDownloadPdf}
+              className="w-full flex items-center justify-center gap-2 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Download Tax Summary PDF</span>
+            </button>
+          </div>
+
+          {/* CA Review Consultation Card (Lead-Gen) */}
+          <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-4 space-y-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20 shrink-0">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-100">Want a Second Opinion?</h4>
+                <p className="text-[10px] text-indigo-400 font-medium">Free CA Expert Review Before Filing</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Have our verified tax experts review your presumptive income, Section 87A rebate, and Chapter VI-A deductions.
+            </p>
+            <button
+              onClick={() => setIsCAReviewModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 text-xs bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-200 hover:text-white font-bold py-2.5 px-4 rounded-xl border border-indigo-500/40 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+            >
+              <Mail className="w-3.5 h-3.5 text-indigo-300" />
+              <span>✉️ Get Free Review from Tax Experts</span>
+            </button>
+            <p className="text-[10px] text-slate-500 text-center leading-tight">
+              No obligation • First review is free • 20% discount on future CA consultations
+            </p>
+          </div>
         </div>
 
         {/* Right Column: Dynamic Section Guide OR Raw JSON */}
@@ -723,6 +830,34 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
           {activeTab === 'GUIDE' ? (
             /* SECTION GUIDE & INSTRUCTIONS VIEW */
             <div className="space-y-4">
+              {/* Quick Document Export Action Bar */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-2 text-xs text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                  <span>
+                    Tax Computation for <strong className="text-white font-mono">{pan.toUpperCase()}</strong> ({tradeName || 'Professional'})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleDownloadPdf}
+                    className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg shadow-sm transition-all active:scale-[0.98]"
+                    title="Download Formal ITR-4 Tax Summary PDF"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
+                    <span>Download Summary PDF</span>
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-3 py-1.5 rounded-lg border border-slate-700 transition-all active:scale-[0.98]"
+                    title="Download CBDT JSON Payload"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Download JSON</span>
+                  </button>
+                </div>
+              </div>
+
               {filteredSections.length === 0 ? (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
                   <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-400">
@@ -815,7 +950,15 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
                   ITR-4 Sugam Official Schema JSON
                 </span>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleDownloadPdf}
+                    className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold px-3 py-1.5 rounded-lg border border-emerald-500/30 transition-all active:scale-[0.98]"
+                    title="Download Formal ITR-4 Tax Summary PDF"
+                  >
+                    <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Tax Summary PDF</span>
+                  </button>
                   <button
                     onClick={handleCopy}
                     className="flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700"
@@ -840,6 +983,18 @@ export const ITR4MapperTab: React.FC<ITR4MapperTabProps> = ({
           )}
         </div>
       </div>
+
+      {/* CA Review Modal */}
+      <CAReviewModal
+        isOpen={isCAReviewModalOpen}
+        onClose={() => setIsCAReviewModalOpen(false)}
+        profileSummary={{
+          grossReceipts,
+          cashPercent: grossReceipts > 0 ? (cashReceipts / grossReceipts) * 100 : 0,
+          selectedRegime: optedNewRegime ? 'NEW' : 'OLD',
+          estimatedTax: defaultPresumptive.newRegime.totalTaxLiability,
+        }}
+      />
     </div>
   );
 };

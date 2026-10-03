@@ -21,11 +21,26 @@ import {
   PresumptiveTaxResult,
   CashSurveillanceResult,
 } from './engine/types';
+import { useTaxData } from './context/TaxDataContext';
 
 function MainAppContent() {
   const { currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>('calculator');
+  const { requestedTab, clearRequestedTab } = useTaxData();
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      return localStorage.getItem('lastVisitedTab') || 'calculator';
+    } catch {
+      return 'calculator';
+    }
+  });
   const [schemaMeta, setSchemaMeta] = useState(getTaxSchema().meta);
+
+  useEffect(() => {
+    if (requestedTab) {
+      setActiveTab(requestedTab);
+      clearRequestedTab();
+    }
+  }, [requestedTab, clearRequestedTab]);
 
   const [evaluationData, setEvaluationData] = useState<{
     eligibility: EligibilityResult;
@@ -55,6 +70,11 @@ function MainAppContent() {
   };
 
   useEffect(() => {
+    try {
+      localStorage.setItem('lastVisitedTab', activeTab);
+    } catch (e) {
+      console.warn(e);
+    }
     setSchemaMeta(getTaxSchema().meta);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [activeTab]);
@@ -129,7 +149,7 @@ function MainAppContent() {
             {schemaMeta.disclaimer}
           </p>
           <p className="text-[10px] text-slate-600">
-            Businessकर • Income Tax & Presumptive Tax Calculator • Section 44AD & Section 44ADA
+            Businesskar • Income Tax & Presumptive Tax Calculator • Section 44AD & Section 44ADA
           </p>
         </div>
       </footer>
